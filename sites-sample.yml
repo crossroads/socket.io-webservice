@@ -1,0 +1,4 @@
+newsite:
+  authUrl: http://newsite.com/socketrooms
+  authScheme: Bearer
+  apiKey: 54321

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8">
+  <title>SocketIO Web Service Example</title>
+</head>
+<body>
+  <div id="status">Offline</div>
+  <textarea id="message"></textarea><br/>
+  <button onclick="sendMessage()">Send</button>
+  <div id="output"></div>
+
+  <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+  <script src="http://localhost:1337/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io("http://localhost:1337/local?token=12345");
+    socket.on("connect", function() { $("#status").text("Connected"); })
+    socket.on("disconnect", function() { $("#status").text("Offline"); })
+    socket.on("error", function(data) { $("#status").text(data); })
+
+    socket.on("message", function (message) {
+      $("#output").append(message + "<br/>");
+    });
+
+    function sendMessage() {
+      var url = "/send?site=local&apiKey=54321";
+      $.post(url, {
+        rooms: ["user_5"],
+        event: "message",
+        args: [$("#message").val()]
+      });
+      $("#message").val("");
+    }
+  </script>
+</body>
+</html>

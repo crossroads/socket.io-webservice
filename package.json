@@ -1,0 +1,35 @@
+{
+  "name": "socket.io-webservice",
+  "version": "1.0.0",
+  "description": "A web service that provides push message services using socket.io",
+  "main": "app.js",
+  "scripts": {
+    "start": "NODE_ENV=dev nodemon app.js",
+    "debug": "NODE_ENV=dev node-debug app.js"
+  },
+  "keywords": [
+    "socketio",
+    "nodejs",
+    "web",
+    "service",
+    "webservice",
+    "push",
+    "messaging"
+  ],
+  "author": "Crossroads HK",
+  "license": "MIT",
+  "repository": "https://github.com/crossroads/socket.io-webservice",
+  "dependencies": {
+    "body-parser": "^1.10.1",
+    "express": "^4.11.0",
+    "js-yaml": "^3.2.5",
+    "redis": "^0.12.1",
+    "request": "^2.51.0",
+    "socket.io": "^1.3.2",
+    "socket.io-redis": "^0.1.4"
+  },
+  "devDependencies": {
+    "node-inspector": "^0.8.3",
+    "nodemon": "^1.3.2"
+  }
+}

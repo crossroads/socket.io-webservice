@@ -1,0 +1,11 @@
+dev:
+  port: 1337
+
+test:
+  port: 1338
+
+prod:
+  port: 80
+  redisPort: 6379
+  redisHost: 127.0.0.1
+  redisKey: 12345

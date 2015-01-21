@@ -9,7 +9,7 @@ var redisAdapter = require("socket.io-redis");
 var httpClient = require("request");
 var server = http.Server(app);
 var io = require("socket.io")(server);
-var config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[app.get("env") || "prod"];
+var config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[process.env.NODE_ENV || "production"];
 var sites = yaml.safeLoad(fs.readFileSync("./sites.yml", "utf8"));
 
 // configure socket.io redis
@@ -20,8 +20,9 @@ if (config.redisPort && config.redisHost) {
   io.adapter(redisAdapter({pubClient: pub, subClient: sub}));
 }
 
-console.log("Listening on " + config.port);
-server.listen(config.port);
+var port = process.env.PORT || config.port;
+console.log("Listening on " + port);
+server.listen(port);
 
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded

@@ -1,10 +1,10 @@
-dev:
+development:
   port: 1337
 
 test:
   port: 1338
 
-prod:
+production:
   port: 80
   redisPort: 6379
   redisHost: 127.0.0.1

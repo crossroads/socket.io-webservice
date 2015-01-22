@@ -7,6 +7,7 @@ var redis = require("redis");
 var bodyParser = require("body-parser");
 var redisAdapter = require("socket.io-redis");
 var httpClient = require("request");
+var debug = require("debug")("app");
 var server = http.Server(app);
 var io = require("socket.io")(server);
 var config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[process.env.NODE_ENV || "production"];
@@ -21,7 +22,7 @@ if (config.redisPort && config.redisHost) {
 }
 
 var port = process.env.PORT || config.port;
-console.log("Listening on " + port);
+debug("Listening on " + port);
 server.listen(port);
 
 app.use(bodyParser.json()); // for parsing application/json
@@ -37,7 +38,7 @@ app.post("/send", function (req, res) {
   }
   var nsp = io.of("/" + req.query.site);
   [].concat(req.body.rooms).forEach(function(room) {
-    console.log(room + ": " + JSON.stringify(req.body.args));
+    debug("Event: " + req.body.event + ", Room:" + room + ", Args: " + JSON.stringify(req.body.args));
     nsp.to(room).emit.apply(nsp, [req.body.event].concat(req.body.args));
   });
   return res.sendStatus(200);
@@ -60,7 +61,7 @@ for (var siteName in sites) {
       } else if (res.statusCode != 200) {
         return next(new Error("Auth " + res.statusCode + " error"));
       }
-      console.log(data);
+      debug("Assigned rooms: " + data);
       data.forEach(function(room) { socket.join(room); });
       next();
     });

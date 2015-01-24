@@ -67,3 +67,23 @@ Supports `Content-Type` `application/json` and `application/x-www-form-urlencode
   `rails s --binding=127.0.0.1`
 
 * Debugger currently does not work in node 0.10.35 or 0.10.34 will be fixed in 0.10.36 but use 0.10.33 for now.
+
+## Installing Nginx / Passenger
+
+Assumes you've installed rvm already
+
+```shell
+yum install nodejs npm
+gem install passenger
+rvmsudo passenger-install-nginx-module --languages nodejs --auto
+```
+
+## Shipit Deployment
+
+Like Capistrano is for Ruby
+
+    npm install --save-dev grunt grunt-shipit
+    grunt shipit:production deploy
+    grunt shipit:production rollback
+
+Note this doesn't copy shared files across yet... perhaps switch back to capistrano?!

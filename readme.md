@@ -80,10 +80,12 @@ rvmsudo passenger-install-nginx-module --languages nodejs --auto
 
 ## Shipit Deployment
 
-Like Capistrano is for Ruby
+Uses the [Shipit framework](https://github.com/shipitjs/grunt-shipit) (it's like Capistrano is for Ruby).
 
-    npm install --save-dev grunt grunt-shipit
+Copy ```Gruntfile.js.example``` to ```Gruntfile.js``` and change the ```deploy@example.net``` line to your production server (uses ssh).
+
+    cp Gruntfile.js.example Gruntfile.js
     grunt shipit:production deploy
     grunt shipit:production rollback
 
-Note this doesn't copy shared files across yet... perhaps switch back to capistrano?!
+The deploy script automatically handles ```npm install``` on the remote machine and ensures shared files are symlinked to the current folder.

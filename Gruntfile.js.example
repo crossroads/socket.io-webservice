@@ -4,6 +4,7 @@
  */
 
 var pkg = require('./package.json');
+var async = require('async');
 
 module.exports = function (grunt) {
 
@@ -18,7 +19,7 @@ module.exports = function (grunt) {
         workspace: '/tmp/socket.io-webservice',
 
         // Project will be deployed in this directory.
-        deployTo: '/opt/socket.io-webservice',
+        deployTo: '/opt/node/socket.io-webservice',
 
         // Repository url.
         repositoryUrl: pkg.repository,
@@ -27,12 +28,16 @@ module.exports = function (grunt) {
         ignores: ['.git', 'node_modules'],
 
         // Number of release to keep (for rollback).
-        keepReleases: 3
+        keepReleases: 3,
+
+        // Array of files to link in shared directory.
+        linkedFiles: ['sites.yml', 'config.yml'],
+
       },
 
     // Production environment.
       production: {
-        servers: ['example.net']
+        servers: ['deploy@example.net']
       }
     }
   });
@@ -42,4 +47,37 @@ module.exports = function (grunt) {
    */
 
   grunt.loadNpmTasks('grunt-shipit');
+
+  grunt.registerTask('copyLinkedFiles', 'Copy files from the shared directory', function() {
+    var linkedFiles = grunt.config('shipit.options.linkedFiles');
+    var done = this.async();
+    var deployTo = grunt.config('shipit.options.deployTo');
+    async.eachSeries(linkedFiles, function(file, next) {
+      grunt.shipit.remote('ln -s ' + deployTo + '/shared/' + file + ' ' + deployTo + '/current', next);
+    }, done);
+  });
+
+  grunt.registerTask('remote:restart', 'Restart Passenger', function() {
+    var deployTo = grunt.config('shipit.options.deployTo');
+    grunt.shipit.remote('mkdir ' + deployTo + '/current/tmp/');
+    grunt.shipit.remote('touch ' + deployTo + '/current/tmp/restart.txt');
+  });
+
+  grunt.registerTask('remote:install', function () {
+    grunt.shipit.remote('npm prune && npm rebuild', this.async());
+  });
+
+  /**
+   * Hooks
+   */
+
+  grunt.shipit.on('published', function () {
+    grunt.task.run(['copyLinkedFiles']);
+    grunt.task.run(['remote:restart']);
+  });
+
+  grunt.shipit.on('updated', function () {
+    grunt.task.run(['remote:install']);
+  });
+
 };

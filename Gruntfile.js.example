@@ -64,7 +64,8 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('remote:install', function () {
-    grunt.shipit.remote('npm prune && npm rebuild', this.async());
+    var deployTo = grunt.config('shipit.options.deployTo');
+    grunt.shipit.remote('cd '+ deployTo + '/current; npm prune && npm install', this.async());
   });
 
   /**

@@ -53,7 +53,7 @@ module.exports = function (grunt) {
     var done = this.async();
     var deployTo = grunt.config('shipit.options.deployTo');
     async.eachSeries(linkedFiles, function(file, next) {
-      grunt.shipit.remote('ln -s ' + deployTo + '/shared/' + file + ' ' + deployTo + '/current', next);
+      grunt.shipit.remote('ln -sf ' + deployTo + '/shared/' + file + ' ' + deployTo + '/current', next);
     }, done);
   });
 

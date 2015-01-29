@@ -5,6 +5,7 @@
 
 var pkg = require('./package.json');
 var async = require('async');
+var path = require('path');
 
 module.exports = function (grunt) {
 
@@ -31,7 +32,10 @@ module.exports = function (grunt) {
         keepReleases: 3,
 
         // Array of files to link in shared directory.
-        linkedFiles: ['sites.yml', 'config.yml'],
+        linkedFiles: ['sites.yml', 'config.yml', 'newrelic.js'],
+
+        // Array of files to link in shared directory.
+        linkedDirs: ['node_modules'],
 
       },
 
@@ -49,23 +53,39 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-shipit');
 
   grunt.registerTask('copyLinkedFiles', 'Copy files from the shared directory', function() {
-    var linkedFiles = grunt.config('shipit.options.linkedFiles');
     var done = this.async();
-    var deployTo = grunt.config('shipit.options.deployTo');
+    var linkedFiles = grunt.shipit.config.linkedFiles;
+    var deployTo = grunt.shipit.config.deployTo;
+    var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname);
+    var sharedPath = path.join(deployTo, 'shared');
     async.eachSeries(linkedFiles, function(file, next) {
-      grunt.shipit.remote('ln -sf ' + deployTo + '/shared/' + file + ' ' + deployTo + '/current', next);
+      grunt.shipit.remote('ln -nfs ' + path.join(sharedPath, file) + ' ' + releasePath, next);
     }, done);
   });
 
-  grunt.registerTask('remote:restart', 'Restart Passenger', function() {
-    var deployTo = grunt.config('shipit.options.deployTo');
-    grunt.shipit.remote('mkdir ' + deployTo + '/current/tmp/');
-    grunt.shipit.remote('touch ' + deployTo + '/current/tmp/restart.txt');
+  grunt.registerTask('copyLinkedDirs', 'Symlink shared directories', function() {
+    var done = this.async();
+    var linkedDirs = grunt.shipit.config.linkedDirs;
+    var deployTo = grunt.shipit.config.deployTo;
+    var sharedPath = path.join(deployTo, 'shared');
+    var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname);
+    async.eachSeries(linkedDirs, function(dir, next) {
+      var src = path.join(sharedPath, dir);
+      grunt.shipit.remote('mkdir -p ' + src + ' && ln -nfs ' + src + ' ' + releasePath, next);
+    }, done);
   });
 
   grunt.registerTask('remote:install', function () {
-    var deployTo = grunt.config('shipit.options.deployTo');
-    grunt.shipit.remote('cd '+ deployTo + '/current; npm prune && npm install', this.async());
+    var deployTo = grunt.shipit.config.deployTo;
+    var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname);
+    var currentPath =  path.join(deployTo, 'current');
+    grunt.shipit.remote('cd '+ releasePath + ' && npm prune install --production', this.async());
+  });
+
+  grunt.registerTask('remote:restart', 'Restart Passenger', function() {
+    var deployTo = grunt.shipit.config.deployTo;
+    var currentPath =  path.join(deployTo, 'current');
+    grunt.shipit.remote('mkdir ' + path.join(currentPath, '/tmp') + ' && touch ' + currentPath + '/tmp/restart.txt', this.async());
   });
 
   /**
@@ -73,12 +93,11 @@ module.exports = function (grunt) {
    */
 
   grunt.shipit.on('published', function () {
-    grunt.task.run(['copyLinkedFiles']);
     grunt.task.run(['remote:restart']);
   });
 
   grunt.shipit.on('updated', function () {
-    grunt.task.run(['remote:install']);
+    grunt.task.run(['copyLinkedFiles', 'copyLinkedDirs', 'remote:install']);
   });
 
 };

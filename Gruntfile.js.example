@@ -49,7 +49,6 @@ module.exports = function (grunt) {
   /**
    * Load shipit task.
    */
-
   grunt.loadNpmTasks('grunt-shipit');
 
   grunt.registerTask('copyLinkedFiles', 'Copy files from the shared directory', function() {
@@ -68,7 +67,7 @@ module.exports = function (grunt) {
     var linkedDirs = grunt.shipit.config.linkedDirs;
     var deployTo = grunt.shipit.config.deployTo;
     var sharedPath = path.join(deployTo, 'shared');
-    var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname);
+    var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname, 'config');
     async.eachSeries(linkedDirs, function(dir, next) {
       var src = path.join(sharedPath, dir);
       grunt.shipit.remote('mkdir -p ' + src + ' && ln -nfs ' + src + ' ' + releasePath, next);

@@ -17,10 +17,20 @@
     socket.on("connect", function() { $("#status").text("Connected"); })
     socket.on("disconnect", function() { $("#status").text("Offline"); })
     socket.on("error", function(data) { $("#status").text(data); })
+    socket.on("batch", batch);
+    socket.on("message", message);
 
-    socket.on("message", function (message) {
-      $("#output").append(message + "<br/>");
-    });
+    function batch(events, success) {
+      events.forEach(function(args) {
+        window[args[0]].apply(this, args.slice(1));
+      }, this);
+      if (success) { success(); }
+    }
+
+    function message(text, success) {
+      $("#output").append(text + "<br/>");
+      if (success) { success(); }
+    }
 
     function sendMessage() {
       var url = "/send?site=local&apiKey=54321";

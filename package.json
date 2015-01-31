@@ -4,8 +4,8 @@
   "description": "A web service that provides push message services using socket.io",
   "main": "app.js",
   "scripts": {
-    "start": "DEBUG=app NODE_ENV=development nodemon app.js",
-    "debug": "DEBUG=app NODE_ENV=development node-debug app.js"
+    "start": "NEW_RELIC_HOME=config DEBUG=* NODE_ENV=development nodemon app.js",
+    "debug": "NEW_RELIC_HOME=config DEBUG=app NODE_ENV=development node-debug app.js"
   },
   "keywords": [
     "socketio",
@@ -20,9 +20,11 @@
   "license": "MIT",
   "repository": "https://github.com/crossroads/socket.io-webservice",
   "dependencies": {
+    "biguint-format": "^1.0.0",
     "body-parser": "^1.10.1",
     "debug": "^2.1.1",
     "express": "^4.11.0",
+    "flake-idgen": "^1.0.0",
     "js-yaml": "^3.2.5",
     "redis": "^0.12.1",
     "request": "^2.51.0",

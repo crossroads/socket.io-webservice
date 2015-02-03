@@ -7,5 +7,6 @@ config.sites = yaml.safeLoad(fs.readFileSync("./sites.yml", "utf8"));
 if (!config.redis) { config.redis = {}; }
 if (!config.redis.port) { config.redis.port = 6379; }
 if (!config.redis.host) { config.redis.host = "127.0.0.1"; }
+if (!config.client_ttl) { config.client_ttl = 3600; }
 
 module.exports = config;

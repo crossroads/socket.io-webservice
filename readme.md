@@ -73,6 +73,7 @@ Configuration details are stored in `config/config.yml` and before the app start
 ```yml
 production:
   port: 80
+  client_ttl: 3600
   redis:
     port: 6379
     host: 127.0.0.1
@@ -85,6 +86,7 @@ production:
 ```
 
 * port - the port the socket.io webservice will be available at (default 1337)
+* client_ttl - the time messages will continue to be kept once the client becomes offline, set to 0 for messages to be kept indefinitely (default 3600 sec)
 * redis
   * host - the hostname of the redis service to use (default 127.0.0.1)
   * port - the port number of the redis service to use (default 6379)

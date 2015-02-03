@@ -91,6 +91,18 @@ module.exports = function(redisConfig, flakeidConfig) {
         });
       });
 
+    },
+
+    expire: function(siteName, listName, ttl) {
+      forEachKey(siteName, listName, function(key) {
+        redisClient.expire(key, ttl);
+      });
+    },
+
+    persist: function(siteName, listName, ttl) {
+      forEachKey(siteName, listName, function(key) {
+        redisClient.persist(key);
+      });
     }
   };
 }

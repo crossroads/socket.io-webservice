@@ -45,6 +45,13 @@ app.post("/send", function (req, res) {
     debug("Room:" + room + ", Args: " + JSON.stringify(args));
 
     if (nsp.isUserRoom(room)) {
+      // user not connected or TTL expired and requires a full sync so no need to store message
+      if (config.client_ttl !== 0 && (nsp.users[room] === undefined ||
+        nsp.users[room] !== true && (Date.now() - nsp.users[room]) > config.client_ttl * 1000)) {
+        delete nsp.users[room];
+        debug("User " + room + "not connected");
+        return;
+      }
       var dataId = store.add(nsp.name, room, req.body.event, args);
       var socket = nsp.getUserSocket(room);
       if (socket) {
@@ -66,6 +73,7 @@ app.post("/send", function (req, res) {
 for (var siteName in config.sites) {
   var site = config.sites[siteName];
   var nsp = io.of("/" + siteName);
+  nsp.users = {};
 
   // helper functions
   nsp.isUserRoom = function(room) {
@@ -105,6 +113,16 @@ for (var siteName in config.sites) {
         var callback = function() { store.clear(nsp.name, room); };
         socket.emit.apply(socket, ["batch", batchArgs, callback]);
       });
+
+      if (config.client_ttl > 0) {
+        nsp.users[room] = true;
+        store.persist(nsp.name, room);
+
+        socket.on("disconnect", function() {
+          nsp.users[room] = Date.now();
+          store.expire(nsp.name, room, config.client_ttl);
+        });
+      }
     });
   });
 }

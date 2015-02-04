@@ -78,7 +78,7 @@ module.exports = function (grunt) {
     var deployTo = grunt.shipit.config.deployTo;
     var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname);
     var currentPath =  path.join(deployTo, 'current');
-    grunt.shipit.remote('cd '+ releasePath + ' && npm prune install --production', this.async());
+    grunt.shipit.remote('cd '+ releasePath + ' && npm install --production', this.async());
   });
 
   grunt.registerTask('remote:restart', 'Restart Passenger', function() {

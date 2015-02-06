@@ -24,7 +24,7 @@ Supports `Content-Type` `application/json` and `application/x-www-form-urlencode
 
 ## Handling unreliable connections
 
-To handle unreliable connections socket.io web service uses a redis cache to store messages and waits for the client to invoke the callback function before removing the message from redis. This is only enabled for rooms that represent a single user, which is determined by room names starting with the site's `userRoomPrefix` setting (see add new site section). For rooms that represent multiple users the callback function will be `undefined` in the client.
+To handle unreliable connections socket.io web service uses a redis cache to store messages and waits for the client to invoke the callback function before removing the message from redis. This is only enabled if `userRoomPrefix` setting (see add new site section) is specified and if it is then every user must belong to a user room that represents a single user.
 
 ```js
 // client app
@@ -111,7 +111,7 @@ newsite:
 * authUrl - this is the url the socketio webservice will use to retrieve the rooms the authenticated user belongs to, the client is required to provide the token `io("/newsite?token=12345")` on connection and will form part of the Authorization header that will be used when the request is made to authUrl
 * authScheme - is used as part of the Authorization header that will be sent to the authUrl
 * apiKey - used to authenticate requests when sending messages to clients via this webservice
-* userRoomPrefix - the prefix rooms belonging to a single user starts with, used for determining whether to enable handling connection reliability functionality
+* userRoomPrefix - the prefix rooms belonging to a single user starts with, used for determining whether to enable handling connection reliability functionality, if specified then every user must belong to a private room
 
 ## Development
 

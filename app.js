@@ -31,6 +31,8 @@ server.listen(port);
 
 // send message to client
 app.post("/send", function (req, res) {
+  debug("Send message request, rooms:" + JSON.stringify(req.body.rooms) + ", event: " + req.body.event + ", args: " + JSON.stringify(req.body.args));
+
   if (!req.query.site || !req.query.apiKey) {
     return res.status(400).send("Missing query param 'site' or 'apiKey'.");
   }
@@ -40,31 +42,47 @@ app.post("/send", function (req, res) {
   }
 
   var nsp = io.of("/" + req.query.site);
-  [].concat(req.body.rooms).forEach(function(room) {
-    var args = [req.body.event].concat(req.body.args);
-    debug("Room:" + room + ", Args: " + JSON.stringify(args));
+  if (!site.userRoomEnabled) {
+    nsp.to(room).emit.apply(nsp, args);
+    return;
+  }
 
+  // turn shared rooms into array of private rooms for connected users
+  var rooms = [];
+  [].concat(req.body.rooms).forEach(function(room) {
     if (nsp.isUserRoom(room)) {
-      // user not connected or TTL expired and requires a full sync so no need to store message
-      if (config.client_ttl !== 0 && (nsp.users[room] === undefined ||
-        nsp.users[room] !== true && (Date.now() - nsp.users[room]) > config.client_ttl * 1000)) {
-        delete nsp.users[room];
-        debug("User " + room + "not connected");
-        return;
-      }
-      var dataId = store.add(nsp.name, room, req.body.event, args);
-      var socket = nsp.getUserSocket(room);
-      if (socket) {
-        var callback = function() {
-          store.remove(nsp.name, room, req.body.event, dataId, !req.query.resync ? null : function() {
-            socket.emit("resync");
-            store.clear(nsp.name, room, req.body.event);
-          });
-        };
-        socket.emit.apply(socket, args.concat(callback));
-      }
+      rooms.push(room);
     } else {
-      nsp.to(room).emit.apply(nsp, args);
+      rooms = rooms.concat(nsp.getUserRooms(room));
+    }
+  });
+  // only unique
+  rooms = rooms.filter(function(value, index, self) { return self.indexOf(value) === index; });
+
+  rooms.forEach(function(room) {
+    // user not connected or TTL expired and requires a full sync so no need to store message
+    if (config.client_ttl !== 0 && (nsp.users[room] === undefined ||
+      nsp.users[room] !== true && (Date.now() - nsp.users[room]) > config.client_ttl * 1000)) {
+      delete nsp.users[room];
+      debug("User " + room + "not connected");
+      return;
+    }
+
+    var args = [req.body.event].concat(req.body.args);
+    var dataId = store.add(nsp.name, room, req.body.event, args);
+    debug("Message: " + dataId + ", room:" + room + ", args: " + JSON.stringify(args));
+
+    var socket = nsp.getUserSocket(room);
+    if (socket) {
+      var callback = function() {
+        debug("Remove message: " + dataId);
+        store.remove(nsp.name, room, req.body.event, dataId, !req.query.resync ? null : function() {
+          socket.emit("resync");
+          debug("Resync emitted from message: " + dataId);
+          store.clear(nsp.name, room, req.body.event);
+        });
+      };
+      socket.emit.apply(socket, args.concat(callback));
     }
   });
   return res.sendStatus(200);
@@ -74,6 +92,7 @@ for (var siteName in config.sites) {
   var site = config.sites[siteName];
   var nsp = io.of("/" + siteName);
   nsp.users = {};
+  site.userRoomEnabled = site.userRoomPrefix && site.userRoomPrefix !== "";
 
   // helper functions
   nsp.isUserRoom = function(room) {
@@ -84,7 +103,15 @@ for (var siteName in config.sites) {
     if (!nsp.adapter.rooms[userRoom]) { return null; }
     var socketId = Object.keys(nsp.adapter.rooms[userRoom])[0];
     return nsp.sockets.filter(function(s) { return s.id === socketId; })[0];
-  }
+  };
+
+  nsp.getUserRooms = function(sharedRoom) {
+    if (!nsp.adapter.rooms[sharedRoom]) { return []; }
+    var socketIds = Object.keys(nsp.adapter.rooms[sharedRoom]);
+    return nsp.sockets
+      .filter(function(s) { return socketIds.some(function(id) { return s.id == id}); })
+      .map(function(s) { return s.rooms.filter(function(r) { return nsp.isUserRoom(r); })[0]; });
+  };
 
   // socket.io authentication and room registration
   nsp.use(function(socket, next) {
@@ -98,8 +125,11 @@ for (var siteName in config.sites) {
         return next(new Error("Authentication error"));
       } else if (res.statusCode !== 200) {
         return next(new Error("Auth " + res.statusCode + " error"));
+      } else if (site.userRoomEnabled && !data.some(function(r) { return nsp.isUserRoom(r); })) {
+        return next(new Error("User is missing a private room"));
       }
       debug("Assigned rooms: " + data);
+      socket.rooms.forEach(function(room) { socket.leave(room); });
       data.forEach(function(room) { socket.join(room); });
       next();
     });

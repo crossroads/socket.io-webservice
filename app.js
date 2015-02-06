@@ -77,7 +77,7 @@ app.post("/send", function (req, res) {
       var callback = function() {
         debug("Remove message: " + dataId);
         store.remove(nsp.name, room, req.body.event, dataId, !req.query.resync ? null : function() {
-          socket.emit("resync");
+          socket.emit("_resync");
           debug("Resync emitted from message: " + dataId);
           store.clear(nsp.name, room, req.body.event);
         });
@@ -138,10 +138,11 @@ for (var siteName in config.sites) {
   // send missed messages
   nsp.on("connection", function(socket) {
     debug("connection: " + JSON.stringify(socket.rooms));
+    socket.emit("_settings", {"client_ttl":config.client_ttl});
     socket.rooms.filter(nsp.isUserRoom).forEach(function(room) {
       store.get(nsp.name, room, function(batchArgs) {
         var callback = function() { store.clear(nsp.name, room); };
-        socket.emit.apply(socket, ["batch", batchArgs, callback]);
+        socket.emit.apply(socket, ["_batch", batchArgs, callback]);
       });
 
       if (config.client_ttl > 0) {

@@ -33,11 +33,11 @@ socket.on("update_store", function(entityType, entity, successCallback) {
 });
 ```
 
-Upon reconnection all the messages for the connecting user will be sent to the client at once as the `batch` event with just a single successCallback for the batch event:
+Upon reconnection all the messages for the connecting user will be sent to the client at once as the `_batch` event with just a single successCallback for the batch event:
 
 ```js
 // client app
-socket.on("batch", batch);
+socket.on("_batch", batch);
 socket.on("update_store", update_store);
 
 function batch(events, successCallback) {
@@ -57,14 +57,20 @@ function update_store(entityType, entity, successCallback) {
 }
 ```
 
-For scenarios where socket.io is used to keep a local database in sync with a server database. There is an option you can turn on called `resync` when sending a message to the client (see send messages section). On success callback a check is made on the server to ensure the message being removed is the first one in the queue for that user and event. If not, say due to a client error processing previous message so that success callback was never called, all the queued messages for that user is cleared and a `resync` event will be sent to the client allowing a full resync to be performed:
+For scenarios where socket.io is used to keep a local database in sync with a server database. There is an option you can turn on called `resync` when sending a message to the client (see send messages section). On success callback a check is made on the server to ensure the message being removed is the first one in the queue for that user and event. If not, say due to a client error processing previous message so that success callback was never called, all the queued messages for that user is cleared and a `_resync` event will be sent to the client allowing a full resync to be performed:
 
 ```js
 // client app
-socket.on("resync", function() {
+socket.on("_resync", function() {
   window.location = window.location.href; // assumes client app performs full sync on page load
 });
 ```
+
+## Special events
+
+* `_batch` - when client connects and if there are awaiting messages they are sent all at once as this event (see Handling unreliable connections)
+* `_resync` - if resync was turned on when sending a message, if message is not first in message queue when success callback was called then this event is sent to let client know to perform a full sync  (see Handling unreliable connections)
+* `_settings` - when client connects an object with settings is sent, currently it just contains `client_ttl`
 
 ## Config
 

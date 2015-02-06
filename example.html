@@ -17,8 +17,8 @@
     socket.on("connect", function() { $("#status").text("Connected"); })
     socket.on("disconnect", function() { $("#status").text("Offline"); })
     socket.on("error", function(data) { $("#status").text(data); })
-    socket.on("batch", batch);
     socket.on("message", message);
+    socket.on("_batch", batch);
 
     function batch(events, success) {
       events.forEach(function(args) {

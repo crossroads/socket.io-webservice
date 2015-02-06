@@ -89,6 +89,10 @@ production:
     worker: 0
   io:
     pingTimeout: 60000
+  airbrake:
+    key: 12345
+    protocol: https
+    serviceHost: api.airbrake.io
 ```
 
 * port - the port the socket.io webservice will be available at (default 1337)
@@ -97,10 +101,15 @@ production:
   * host - the hostname of the redis service to use (default 127.0.0.1)
   * port - the port number of the redis service to use (default 6379)
   * a full list of options can be found here https://github.com/mranney/node_redis#rediscreateclient
-* flakeid
+* flakeid (used to id messages in redis queue)
   * a full list of options can be found here https://github.com/T-PWK/flake-idgen#usage
 * io
   * a full list of options can be found here https://github.com/Automattic/socket.io#serveroptsobject
+* airbrake (optional, a [webservice](https://github.com/errbit/errbit) to log errors to)
+  * key - the api key used to authorize access to the airbrake server instance
+  * protocol - the http protocol of the airbrake server instance (default http)
+  * serviceHost - the host name of the airbrake server instance (default api.airbrake.io)
+  * a full list of options (will be set as properties of airbrake instance) can be found here https://github.com/felixge/node-airbrake
 
 ### Add New Site
 To add new sites modify `config/sites.yml` as follows:

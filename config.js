@@ -1,8 +1,10 @@
 // load site and configuration data
 var fs = require("fs");
 var yaml = require("js-yaml");
-var config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[process.env.NODE_ENV || "production"];
+var env = process.env.NODE_ENV || "production";
+var config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[env];
 config.sites = yaml.safeLoad(fs.readFileSync("./sites.yml", "utf8"));
+config.env = env;
 
 if (!config.redis) { config.redis = {}; }
 if (!config.redis.port) { config.redis.port = 6379; }

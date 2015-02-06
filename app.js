@@ -1,10 +1,21 @@
-require('newrelic');
+require("newrelic");
 var express = require("express");
 var app = express();
 var server = require("http").createServer(app);
 var config = require("./config.js");
 var io = require("socket.io")(server, config.io);
 var store = require("./store.js")(config.redis, config.flakeid);
+
+// error handling
+var errorHandler;
+if (config.airbrake && config.airbrake.key) {
+  var airbrake = require("airbrake").createClient(config.airbrake.key, config.env);
+  for (var setting in config.airbrake) {
+    airbrake[setting] = config.airbrake[setting];
+  }
+  // this registers uncaughtException for node errors and then returns error handler
+  errorHandler = airbrake.expressHandler();
+}
 
 // utilities
 var url = require("url");
@@ -156,4 +167,9 @@ for (var siteName in config.sites) {
       }
     });
   });
+}
+
+// this needs to came after other app.use that you want to record errors for
+if (errorHandler) {
+  app.use(errorHandler);
 }

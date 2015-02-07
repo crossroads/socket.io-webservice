@@ -16,3 +16,14 @@ production:
     key: 12345
     protocol: https
     serviceHost: api.airbrake.io
+  winston:
+    file:
+      level: info
+      filename: ./logs/log.txt
+      handleExceptions: true
+      json: true
+      maxsize: 5242880 #5MB
+      maxFiles: 5
+      colorize: false
+    console:
+      level: info

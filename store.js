@@ -1,11 +1,9 @@
-var intFormat = require("biguint-format");
-var FlakeId = require("flake-idgen");
 var redis = require("redis");
-var extend = require('util')._extend;
+var extend = require("util")._extend;
+var genId = require("./genId.js");
 
-module.exports = function(redisConfig, flakeidConfig) {
+module.exports = function(redisConfig) {
 
-  var idGen = new FlakeId(flakeidConfig || {});
   var redisConfig = extend({}, redisConfig, {return_buffers:false});
   var redisClient = redis.createClient(redisConfig.port, redisConfig.host, redisConfig);
 
@@ -28,7 +26,7 @@ module.exports = function(redisConfig, flakeidConfig) {
 
   return {
     add: function(siteName, listName, event, data) {
-      var dataId = intFormat(idGen.next(), "dec");
+      var dataId = genId();
       var redisKey = keyName(siteName, listName, event);
       redisClient.rpush(redisKey, dataId + ":" + JSON.stringify(data));
       return dataId;

@@ -133,6 +133,13 @@ production:
     key: 12345
     protocol: https
     serviceHost: api.airbrake.io
+  winston:
+    file:
+      level: info
+      filename: ./logs/log.txt
+      handleExceptions: true
+    console:
+      level: info
 ```
 
 * port - the port the socket.io webservice will be available at (default 1337)
@@ -150,6 +157,7 @@ production:
   * protocol - the http protocol of the airbrake server instance (default http)
   * serviceHost - the host name of the airbrake server instance (default api.airbrake.io)
   * a full list of options (will be set as properties of airbrake instance) can be found here https://github.com/felixge/node-airbrake
+* winston - a logging library can use a list of the built-in transports (default console only), options can be found here https://github.com/winstonjs/winston#working-with-transports
 
 ### Add new site
 To add new sites modify `config/sites.yml` as follows:

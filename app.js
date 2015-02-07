@@ -71,30 +71,39 @@ app.post("/send", function (req, res) {
   rooms = rooms.filter(function(value, index, self) { return self.indexOf(value) === index; });
 
   rooms.forEach(function(room) {
-    // user not connected or TTL expired and requires a full sync so no need to store message
-    if (config.client_ttl !== 0 && (nsp.users[room] === undefined ||
-      nsp.users[room] !== true && (Date.now() - nsp.users[room]) > config.client_ttl * 1000)) {
-      delete nsp.users[room];
-      debug("User " + room + "not connected");
+    if (!nsp.users[room]) {
       return;
     }
-
     var args = [req.body.event].concat(req.body.args);
-    var dataId = store.add(nsp.name, room, req.body.event, args);
-    debug("Message: " + dataId + ", room:" + room + ", args: " + JSON.stringify(args));
+    nsp.users[room].devices.forEach(function(device) {
+      // user not connected or TTL expired and requires a full sync so no need to store message
+      if (config.device_ttl !== 0 && device.connected !== true &&
+        (Date.now() - device.disconnectTime) > config.device_ttl * 1000) {
+        nsp.removeDevice(room, device);
+        if (nsp.users[room].devices.length === 0) {
+          delete nsp.users[room];
+        }
+        debug("User " + room + " with deviceId " + device.id + " not connected");
+        return;
+      }
 
-    var socket = nsp.getUserSocket(room);
-    if (socket) {
-      var callback = function() {
-        debug("Remove message: " + dataId);
-        store.remove(nsp.name, room, req.body.event, dataId, !req.query.resync ? null : function() {
-          socket.emit("_resync");
-          debug("Resync emitted from message: " + dataId);
-          store.clear(nsp.name, room, req.body.event);
-        });
-      };
-      socket.emit.apply(socket, args.concat(callback));
-    }
+      var dataId = store.add(nsp.name, device.storeListName, req.body.event, args);
+      debug("Message: " + dataId + ", room:" + room + ", args: " + JSON.stringify(args));
+
+      var socket = nsp.getSocket(device.socketId);
+      if (socket) {
+        var callback = function() {
+          debug("Remove message: " + dataId);
+          store.remove(nsp.name, device.storeListName, req.body.event, dataId, !req.query.resync ? null : function() {
+            socket.emit("_resync");
+            debug("Resync emitted from message: " + dataId);
+            store.clear(nsp.name, device.storeListName, req.body.event);
+          });
+        };
+
+        socket.emit.apply(socket, args.concat(callback));
+      }
+    });
   });
   return res.sendStatus(200);
 });
@@ -110,18 +119,20 @@ for (var siteName in config.sites) {
     return room.indexOf(site.userRoomPrefix) === 0;
   };
 
-  nsp.getUserSocket = function(userRoom) {
-    if (!nsp.adapter.rooms[userRoom]) { return null; }
-    var socketId = Object.keys(nsp.adapter.rooms[userRoom])[0];
-    return nsp.sockets.filter(function(s) { return s.id === socketId; })[0];
+  nsp.getUserRooms = function(sharedRoom) {
+    return nsp.users.map(function(u) { u.rooms.filter(function(r) { return nsp.isUserRoom(r); })[0]; })
   };
 
-  nsp.getUserRooms = function(sharedRoom) {
-    if (!nsp.adapter.rooms[sharedRoom]) { return []; }
-    var socketIds = Object.keys(nsp.adapter.rooms[sharedRoom]);
-    return nsp.sockets
-      .filter(function(s) { return socketIds.some(function(id) { return s.id == id}); })
-      .map(function(s) { return s.rooms.filter(function(r) { return nsp.isUserRoom(r); })[0]; });
+  nsp.removeDevice = function(userRoom, device) {
+    var devices = nsp.users[userRoom].devices;
+    var idx = devices.indexOf(device);
+    if (idx > -1) {
+      devices.splice(idx, 1);
+    }
+  };
+
+  nsp.getSocket = function(socketId) {
+    return nsp.sockets.filter(function(s) { return s.id == socketId; })[0];
   };
 
   // socket.io authentication and room registration
@@ -149,20 +160,32 @@ for (var siteName in config.sites) {
   // send missed messages
   nsp.on("connection", function(socket) {
     debug("connection: " + JSON.stringify(socket.rooms));
-    socket.emit("_settings", {"client_ttl":config.client_ttl});
+    socket.emit("_settings", {"device_ttl":config.device_ttl});
     socket.rooms.filter(nsp.isUserRoom).forEach(function(room) {
-      store.get(nsp.name, room, function(batchArgs) {
-        var callback = function() { store.clear(nsp.name, room); };
+      if (!nsp.users[room]) {
+        nsp.users[room] = {"rooms": socket.rooms, "devices": []};
+      }
+      var deviceId = url.parse(socket.request.url, true).query.deviceId || "";
+      var device = nsp.users[room].devices.filter(function(d) { return d.id == deviceId; })[0];
+      if (!device) {
+        device = {"id": deviceId, "storeListName": room + ":" + deviceId};
+        nsp.users[room].devices.push(device);
+      }
+      device.socketId = socket.id;
+
+      store.get(nsp.name, device.storeListName, function(batchArgs) {
+        var callback = function() { store.clear(nsp.name, device.storeListName); };
         socket.emit.apply(socket, ["_batch", batchArgs, callback]);
       });
 
-      if (config.client_ttl > 0) {
-        nsp.users[room] = true;
-        store.persist(nsp.name, room);
+      if (config.device_ttl > 0) {
+        nsp.users[room].connected = true;
+        store.persist(nsp.name, device.storeListName);
 
         socket.on("disconnect", function() {
-          nsp.users[room] = Date.now();
-          store.expire(nsp.name, room, config.client_ttl);
+          device.connected = false;
+          device.disconnectTime = Date.now();
+          store.expire(nsp.name, device.storeListName, config.device_ttl);
         });
       }
     });

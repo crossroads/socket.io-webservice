@@ -4,6 +4,21 @@ The SocketIO Web Service allows multiple sites, differentiated via socket.io nam
 
 When a client connects a request is made to your website to authenticate the user via the Authorization header, and to retrieve the list of rooms the client belongs to which can be a group name or individual name for direct communication. Your website can then send messages via this webservice to the clients, while the clients can communitate with your website directly.
 
+* [Sending Messages](#sending-messages)
+* [Handling unreliable connections](#handling-unreliable-connections)
+* [Client](#client)
+  * [Special events](#special-events)
+* [Config](#config)
+  * [Add new site](#add-new-site)
+* [Development](#development)
+  * [Installation](#installation)
+  * [Running](#running)
+  * [Debugging](#debugging)
+* [Production](#production)
+  * [Installing Nginx / Passenger](#installing-nginx--passenger)
+  * [Shipit Deployment](#shipit-deployment)
+* [Known Issues](#known-issues)
+
 ## Sending Messages
 
 The intention is client apps communicate directly with the server app, and the server app uses the following POST request on this app to communicate with the client app.
@@ -66,11 +81,36 @@ socket.on("_resync", function() {
 });
 ```
 
-## Special events
+## Client
+
+```js
+// client app
+var socket = io("http://domain.com/<namespace>?token=12345&deviceId=090909");
+```
+
+* namespace - the namespace should match the name used in `sites.yml` (see add new site)
+* token - is the token that will form the authorization header with authScheme in sites.yml that will be sent with the request to retrieve rooms from authUrl defined in sites.yml (see add new site)
+* deviceId - this is intended for support of a single user having multiple devices (e.g. could be a user with two browser tabs open if not updating a shared data storage)
+
+### Special events
+
+```js
+// client app
+socket.on("_batch", function(events, success) {
+  events.forEach(function(args) {
+    window[args[0]].apply(this, args.slice(1));
+  }, this);
+  if (success) { success(); }
+});
+
+socket.on("_resync", function() {
+  window.location = window.location.href;
+});
+```
 
 * `_batch` - when client connects and if there are awaiting messages they are sent all at once as this event (see Handling unreliable connections)
 * `_resync` - if resync was turned on when sending a message, if message is not first in message queue when success callback was called then this event is sent to let client know to perform a full sync  (see Handling unreliable connections)
-* `_settings` - when client connects an object with settings is sent, currently it just contains `client_ttl`
+* `_settings` - when client connects an object with settings is sent, currently it just contains `device_ttl`
 
 ## Config
 
@@ -79,7 +119,7 @@ Configuration details are stored in `config/config.yml` and before the app start
 ```yml
 production:
   port: 80
-  client_ttl: 3600
+  device_ttl: 3600
   redis:
     port: 6379
     host: 127.0.0.1
@@ -96,7 +136,7 @@ production:
 ```
 
 * port - the port the socket.io webservice will be available at (default 1337)
-* client_ttl - the time messages will continue to be kept once the client becomes offline, set to 0 for messages to be kept indefinitely (default 3600 sec)
+* device_ttl - the time messages will continue to be kept once the client becomes offline, set to 0 for messages to be kept indefinitely (default 3600 sec)
 * redis
   * host - the hostname of the redis service to use (default 127.0.0.1)
   * port - the port number of the redis service to use (default 6379)
@@ -111,7 +151,7 @@ production:
   * serviceHost - the host name of the airbrake server instance (default api.airbrake.io)
   * a full list of options (will be set as properties of airbrake instance) can be found here https://github.com/felixge/node-airbrake
 
-### Add New Site
+### Add new site
 To add new sites modify `config/sites.yml` as follows:
 
 ```yml
@@ -151,7 +191,7 @@ newsite:
 
 ## Production
 
-### Installing Nginx / Passenger
+### Installing nginx / passenger
 
 Assumes you've installed rvm already
 
@@ -161,7 +201,7 @@ gem install passenger
 rvmsudo passenger-install-nginx-module --languages nodejs --auto
 ```
 
-### Shipit Deployment
+### Shipit deployment
 
 Uses the [Shipit framework](https://github.com/shipitjs/grunt-shipit) (it's like Capistrano is for Ruby).
 
@@ -173,7 +213,7 @@ Copy `config/Gruntfile.js.example` to `config/Gruntfile.js` and change the `depl
 
 The deploy script automatically handles `npm install` on the remote machine and ensures shared files are symlinked to the current folder.
 
-## Known Issues
+## Known issues
 
 * Nodejs has trouble connecting to local websites via localhost during authentication, the workaround is to start rails (or some other web app) bound to 127.0.0.1 instead (the socket.io authUrl can still say localhost) .e.g
 

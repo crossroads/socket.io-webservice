@@ -9,6 +9,6 @@ config.env = env;
 if (!config.redis) { config.redis = {}; }
 if (!config.redis.port) { config.redis.port = 6379; }
 if (!config.redis.host) { config.redis.host = "127.0.0.1"; }
-if (!config.client_ttl) { config.client_ttl = 3600; }
+if (!config.device_ttl) { config.device_ttl = 3600; }
 
 module.exports = config;

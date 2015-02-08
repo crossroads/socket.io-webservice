@@ -38,13 +38,13 @@ io.adapter(redisAdapter({pubClient: pub, subClient: sub}));
 
 // start app
 var port = process.env.PORT || config.port || 1337;
-logger("info", {"category": "app start", "message": "Listening on " + port});
+logger.info({"category": "app start", "message": "Listening on " + port});
 server.listen(port);
 
 // send message to client
 app.post("/send", function (req, res) {
   var reqId = genId();
-  logger("info", {
+  logger.info({
     "category": "send message request",
     "requestId": reqId,
     "rooms": req.body.rooms,
@@ -53,12 +53,12 @@ app.post("/send", function (req, res) {
   });
 
   if (!req.query.site || !req.query.apiKey) {
-    logger("error", {"category":"send message error","requestId":reqId,"message":"Missing query param 'site' or 'apiKey'."});
+    logger.error({"category":"send message error","requestId":reqId,"message":"Missing query param 'site' or 'apiKey'."});
     return res.status(400).send("Missing query param 'site' or 'apiKey'.");
   }
   var site = config.sites[req.query.site];
   if (!site || site.apiKey !== req.query.apiKey) {
-    logger("error", {"category":"send message error","requestId":reqId,"message":"ApiKey invalid"});
+    logger.error({"category":"send message error","requestId":reqId,"message":"ApiKey invalid"});
     return res.sendStatus(401).send("ApiKey invalid.");
   }
 
@@ -93,20 +93,20 @@ app.post("/send", function (req, res) {
         if (nsp.users[room].devices.length === 0) {
           delete nsp.users[room];
         }
-        logger("info", {"category":"user not connected","requestId":reqId,"message":"User " + room + " with deviceId " + device.id + " not connected"});
+        logger.info({"category":"user not connected","requestId":reqId,"message":"User " + room + " with deviceId " + device.id + " not connected"});
         return;
       }
 
       var dataId = store.add(nsp.name, device.storeListName, req.body.event, args);
-      logger("info", {"category":"message stored","requestId":reqId,"dataId": dataId, "room": room, "args": args});
+      logger.info({"category":"message stored","requestId":reqId,"dataId": dataId, "room": room, "args": args});
 
       var socket = nsp.getSocket(device.socketId);
       if (socket) {
         var callback = function() {
-          logger("info", {"category":"message removed","requestId":reqId,"message": "Remove message: " + dataId});
+          logger.info({"category":"message removed","requestId":reqId,"message": "Remove message: " + dataId});
           store.remove(nsp.name, device.storeListName, req.body.event, dataId, !req.query.resync ? null : function() {
             socket.emit("_resync");
-            logger("error", {"category":"resync event","requestId":reqId,"message":"Resync emitted from message: " + dataId});
+            logger.error({"category":"resync event","requestId":reqId,"message":"Resync emitted from message: " + dataId});
             store.clear(nsp.name, device.storeListName, req.body.event);
           });
         };
@@ -152,19 +152,19 @@ for (var siteName in config.sites) {
 
     httpClient.get(site.authUrl, {headers:headers, json:true}, function(error, res, data) {
       if (error) {
-        logger("error", {"category":"authentication","message":"Client auth error: " + error});
+        logger.error({"category":"authentication","message":"Client auth error: " + error});
         return next(new Error("Auth error: " + error));
       } else if (res.statusCode === 401) {
-        logger("error", {"category":"authentication","message":"Client auth failed"});
+        logger.error({"category":"authentication","message":"Client auth failed"});
         return next(new Error("Authentication failed"));
       } else if (res.statusCode !== 200) {
-        logger("error", {"category":"authentication","message":"Auth " + res.statusCode + " error"});
+        logger.error({"category":"authentication","message":"Auth " + res.statusCode + " error"});
         return next(new Error("Auth " + res.statusCode + " error"));
       } else if (site.userRoomEnabled && !data.some(function(r) { return nsp.isUserRoom(r); })) {
-        logger("error", {"category":"authentication","message":"User is missing a private room"});
+        logger.error({"category":"authentication","message":"User is missing a private room"});
         return next(new Error("User is missing a private room"));
       }
-      logger("info", {"category":"socket connected","socketId":socket.id,"rooms":data});
+      logger.info({"category":"socket connected","socketId":socket.id,"rooms":data});
       socket.rooms.forEach(function(room) { socket.leave(room); });
       data.forEach(function(room) { socket.join(room); });
       next();
@@ -173,7 +173,7 @@ for (var siteName in config.sites) {
 
   // send missed messages
   nsp.on("connection", function(socket) {
-    logger("info", {"category":"socket connected","socketId":socket.id,"rooms":socket.rooms});
+    logger.info({"category":"socket connected","socketId":socket.id,"rooms":socket.rooms});
     socket.emit("_settings", {"device_ttl":config.device_ttl});
     socket.rooms.filter(nsp.isUserRoom).forEach(function(room) {
       if (!nsp.users[room]) {
@@ -188,7 +188,7 @@ for (var siteName in config.sites) {
       device.socketId = socket.id;
 
       store.get(nsp.name, device.storeListName, function(batchArgs) {
-        logger("info", {"category":"batch event","socketId":socket.id,"deviceId":deviceId,"args":batchArgs});
+        logger.info({"category":"batch event","socketId":socket.id,"deviceId":deviceId,"args":batchArgs});
         var callback = function() { store.clear(nsp.name, device.storeListName); };
         socket.emit.apply(socket, ["_batch", batchArgs, callback]);
       });
@@ -198,7 +198,7 @@ for (var siteName in config.sites) {
         store.persist(nsp.name, device.storeListName);
 
         socket.on("disconnect", function() {
-          logger("info", {"category":"socket disconnected","socketId":socket.id,"deviceId":deviceId});
+          logger.info({"category":"socket disconnected","socketId":socket.id,"deviceId":deviceId});
           device.connected = false;
           device.disconnectTime = Date.now();
           store.expire(nsp.name, device.storeListName, config.device_ttl);

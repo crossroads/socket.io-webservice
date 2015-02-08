@@ -114,7 +114,7 @@ socket.on("_resync", function() {
 
 ## Config
 
-Configuration details are stored in `config/config.yml` and before the app starts `NODE_ENV` can be set to either `development` or `production`. If no environment is specified it defaults to production.
+Configuration details are stored in `config.yml` and before the app starts `NODE_ENV` can be set to either `development` or `production`. If no environment is specified it defaults to production.
 
 ```yml
 production:
@@ -160,7 +160,7 @@ production:
 * winston - a logging library can use a list of the built-in transports (default console only), options can be found here https://github.com/winstonjs/winston#working-with-transports
 
 ### Add new site
-To add new sites modify `config/sites.yml` as follows:
+To add new sites modify `sites.yml` as follows:
 
 ```yml
 newsite:
@@ -213,7 +213,7 @@ rvmsudo passenger-install-nginx-module --languages nodejs --auto
 
 Uses the [Shipit framework](https://github.com/shipitjs/grunt-shipit) (it's like Capistrano is for Ruby).
 
-Copy `config/Gruntfile.js.example` to `config/Gruntfile.js` and change the `deploy@example.net` line to your production server (uses ssh).
+Copy `Gruntfile.js.example` to `Gruntfile.js` and change the `deploy@example.net` line to your production server (uses ssh).
 
     cp Gruntfile.js.example Gruntfile.js
     grunt shipit:production deploy

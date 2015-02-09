@@ -57,9 +57,9 @@ app.post("/send", function (req, res) {
     return res.status(400).send("Missing query param 'site' or 'apiKey'.");
   }
   var site = config.sites[req.query.site];
-  if (!site || site.apiKey !== req.query.apiKey) {
+  if (!site || site.apiKey.toString() !== req.query.apiKey) {
     logger.error({"category":"send message error","requestId":reqId,"message":"ApiKey invalid"});
-    return res.sendStatus(401).send("ApiKey invalid.");
+    return res.status(401).send("ApiKey invalid.");
   }
 
   var nsp = io.of("/" + req.query.site);
@@ -130,7 +130,9 @@ for (var siteName in config.sites) {
   };
 
   nsp.getUserRooms = function(sharedRoom) {
-    return nsp.users.map(function(u) { u.rooms.filter(function(r) { return nsp.isUserRoom(r); })[0]; })
+    return Object.keys(nsp.users).filter(function(key) {
+      return nsp.users[key].rooms.some(function(r) { return r.toLowerCase() == sharedRoom.toLowerCase(); });
+    });
   };
 
   nsp.removeDevice = function(userRoom, device) {

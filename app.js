@@ -63,15 +63,11 @@ app.post("/send", function (req, res) {
   }
 
   var nsp = io.of("/" + req.query.site);
-  if (!site.userRoomEnabled) {
-    nsp.to(room).emit.apply(nsp, args);
-    return;
-  }
 
   // turn shared rooms into array of private rooms for connected users
   var rooms = [];
   [].concat(req.body.rooms).forEach(function(room) {
-    if (nsp.isUserRoom(room)) {
+    if (!site.userRoomEnabled || nsp.isUserRoom(room)) {
       rooms.push(room);
     } else {
       rooms = rooms.concat(nsp.getUserRooms(room));
@@ -82,6 +78,10 @@ app.post("/send", function (req, res) {
 
   rooms.forEach(function(room) {
     if (!nsp.users[room]) {
+      return;
+    }
+    if (!site.userRoomEnabled) {
+      nsp.to(room).emit.apply(nsp, args);
       return;
     }
     var args = [req.body.event].concat(req.body.args);

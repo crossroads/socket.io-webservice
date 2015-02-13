@@ -27,3 +27,7 @@ production:
       colorize: false
     console:
       level: info
+  # servers to deploy to
+  servers:
+    - server1.example.net
+    - server2.example.net

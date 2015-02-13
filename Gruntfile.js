@@ -1,11 +1,12 @@
 /* USAGE
- *   grunt shipit:production deploy
- *   grunt shipit:production rollback
+ *   NODE_ENV=production grunt shipit:production deploy
+ *   NODE_ENV=production grunt shipit:production rollback
  */
 
 var pkg = require('./package.json');
 var async = require('async');
 var path = require('path');
+var config = require('./config.js');
 
 module.exports = function (grunt) {
 
@@ -40,8 +41,14 @@ module.exports = function (grunt) {
       },
 
     // Production environment.
+      staging: {
+        // Servers defined manually here:
+        // servers: ['deploy@example.net']
+        // Or, servers defined in config.yml:
+        servers: config.servers
+      },
       production: {
-        servers: ['deploy@example.net']
+        servers: config.servers
       }
     }
   });

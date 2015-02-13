@@ -140,6 +140,9 @@ production:
       handleExceptions: true
     console:
       level: info
+  servers:
+    - deployer@server1.example.com
+    - deployer@server2.example.com
 ```
 
 * port - the port the socket.io webservice will be available at (default 1337)
@@ -213,11 +216,17 @@ rvmsudo passenger-install-nginx-module --languages nodejs --auto
 
 Uses the [Shipit framework](https://github.com/shipitjs/grunt-shipit) (it's like Capistrano is for Ruby).
 
-Copy `Gruntfile.js.example` to `Gruntfile.js` and change the `deploy@example.net` line to your production server (uses ssh).
+Open config.yml and set a server for the environment you want to deploy to.
 
-    cp Gruntfile.js.example Gruntfile.js
-    grunt shipit:production deploy
-    grunt shipit:production rollback
+  production:
+    servers:
+      - deployer@server1.example.com
+      - deployer@server2.example.com
+
+Check in your code and use shipit to deploy. Shipit will checkout code from your git repo rather than uploading your local files.
+
+    NODE_ENV=production grunt shipit:production deploy
+    NODE_ENV=production grunt shipit:production rollback
 
 The deploy script automatically handles `npm install` on the remote machine and ensures shared files are symlinked to the current folder.
 

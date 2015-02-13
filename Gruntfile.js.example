@@ -35,7 +35,7 @@ module.exports = function (grunt) {
         linkedFiles: ['sites.yml', 'config.yml', 'newrelic.js'],
 
         // Array of files to link in shared directory.
-        linkedDirs: ['node_modules'],
+        linkedDirs: ['node_modules', 'logs'],
 
       },
 
@@ -67,7 +67,7 @@ module.exports = function (grunt) {
     var linkedDirs = grunt.shipit.config.linkedDirs;
     var deployTo = grunt.shipit.config.deployTo;
     var sharedPath = path.join(deployTo, 'shared');
-    var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname, 'config');
+    var releasePath = path.join(grunt.shipit.releasesPath, grunt.shipit.releaseDirname);
     async.eachSeries(linkedDirs, function(dir, next) {
       var src = path.join(sharedPath, dir);
       grunt.shipit.remote('mkdir -p ' + src + ' && ln -nfs ' + src + ' ' + releasePath, next);

@@ -151,6 +151,7 @@ for (var siteName in config.sites) {
 
   // socket.io authentication and room registration
   nsp.use(function(socket, next) {
+    nsp = socket.nsp; // for some reason without this, nsp referred to the last site's nsp
     var query = url.parse(socket.request.url, true).query;
     var headers = {"Authorization": site.authScheme + " " + query.token};
 
@@ -176,6 +177,7 @@ for (var siteName in config.sites) {
 
   // send missed messages
   nsp.on("connection", function(socket) {
+    nsp = socket.nsp; // for some reason without this, nsp referred to the last site's nsp
     var deviceId = url.parse(socket.request.url, true).query.deviceId || "";
     logger.info({"category":"socket connected","site":nsp.name,"socketId":socket.id,"rooms":socket.rooms,"deviceId":deviceId});
     socket.emit("_settings", {"device_ttl":config.device_ttl});

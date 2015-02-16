@@ -64,6 +64,7 @@ app.post("/send", function (req, res) {
   }
 
   var nsp = io.of("/" + req.query.site);
+  var args = [req.body.event].concat(req.body.args);
 
   // turn shared rooms into array of private rooms for connected users
   var rooms = [];
@@ -78,10 +79,9 @@ app.post("/send", function (req, res) {
   rooms = rooms.filter(function(value, index, self) { return self.indexOf(value) === index; });
 
   rooms.forEach(function(room) {
-    var args = [req.body.event].concat(req.body.args);
     if (!site.userRoomEnabled) {
       nsp.to(room).sockets.forEach(function(socket) {
-        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"room": room, "deviceId": socket.deviceId});
+        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"room": room, "socketId": socket.id});
       });
       nsp.to(room).emit.apply(nsp, args);
       return;
@@ -107,15 +107,15 @@ app.post("/send", function (req, res) {
       var socket = nsp.getSocket(device.socketId);
       if (socket) {
         var callback = function() {
-          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"deviceId":device.id, "message": "Remove message: " + dataId});
+          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message": "Remove message: " + dataId});
           store.remove(nsp.name, device.storeListName, req.body.event, dataId, !req.query.resync ? null : function() {
             socket.emit("_resync");
-            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"deviceId":device.id, "message":"Resync emitted from message: " + dataId});
+            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message":"Resync emitted from message: " + dataId});
             store.clear(nsp.name, device.storeListName, req.body.event);
           });
         };
 
-        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id});
+        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id, "socketId":socket.id});
         socket.emit.apply(socket, args.concat(callback));
       }
     });

@@ -78,14 +78,17 @@ app.post("/send", function (req, res) {
   rooms = rooms.filter(function(value, index, self) { return self.indexOf(value) === index; });
 
   rooms.forEach(function(room) {
-    if (!nsp.users[room]) {
-      return;
-    }
+    var args = [req.body.event].concat(req.body.args);
     if (!site.userRoomEnabled) {
+      nsp.to(room).sockets.forEach(function(socket) {
+        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"room": room, "deviceId": socket.deviceId});
+      });
       nsp.to(room).emit.apply(nsp, args);
       return;
     }
-    var args = [req.body.event].concat(req.body.args);
+    if (!nsp.users[room]) {
+      return;
+    }
     nsp.users[room].devices.forEach(function(device) {
       // user not connected or TTL expired and requires a full sync so no need to store message
       if (config.device_ttl !== 0 && device.connected !== true &&
@@ -94,25 +97,25 @@ app.post("/send", function (req, res) {
         if (nsp.users[room].devices.length === 0) {
           delete nsp.users[room];
         }
-        logger.info({"category":"user not connected","site":nsp.name,"requestId":reqId,"message":"User " + room + " with deviceId " + device.id + " not connected"});
+        logger.info({"category":"user not connected","site":nsp.name,"requestId":reqId,"deviceId": device.id, "message":"User " + room + " not connected"});
         return;
       }
 
       var dataId = store.add(nsp.name, device.storeListName, req.body.event, args);
-      logger.info({"category":"message stored","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "args": args});
+      logger.info({"category":"message stored","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id, "args": args});
 
       var socket = nsp.getSocket(device.socketId);
       if (socket) {
         var callback = function() {
-          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"message": "Remove message: " + dataId});
+          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"deviceId":device.id, "message": "Remove message: " + dataId});
           store.remove(nsp.name, device.storeListName, req.body.event, dataId, !req.query.resync ? null : function() {
             socket.emit("_resync");
-            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"message":"Resync emitted from message: " + dataId});
+            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"deviceId":device.id, "message":"Resync emitted from message: " + dataId});
             store.clear(nsp.name, device.storeListName, req.body.event);
           });
         };
 
-        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room});
+        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id});
         socket.emit.apply(socket, args.concat(callback));
       }
     });
@@ -169,6 +172,7 @@ for (var siteName in config.sites) {
         logger.error({"category":"authentication","site":nsp.name,"message":"User is missing a private room"});
         return next(new Error("User is missing a private room"));
       }
+      logger.info({"category":"rooms registered","socketId":socket.id,"rooms":data});
       socket.rooms.forEach(function(room) { socket.leave(room); });
       data.forEach(function(room) { socket.join(room); });
       next();
@@ -179,6 +183,7 @@ for (var siteName in config.sites) {
   nsp.on("connection", function(socket) {
     nsp = socket.nsp; // for some reason without this, nsp referred to the last site's nsp
     var deviceId = url.parse(socket.request.url, true).query.deviceId || "";
+    socket.deviceId = deviceId;
     logger.info({"category":"socket connected","site":nsp.name,"socketId":socket.id,"rooms":socket.rooms,"deviceId":deviceId});
     socket.emit("_settings", {"device_ttl":config.device_ttl});
     socket.rooms.filter(nsp.isUserRoom).forEach(function(room) {

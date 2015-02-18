@@ -160,7 +160,8 @@ production:
   * protocol - the http protocol of the airbrake server instance (default http)
   * serviceHost - the host name of the airbrake server instance (default api.airbrake.io)
   * a full list of options (will be set as properties of airbrake instance) can be found here https://github.com/felixge/node-airbrake
-* winston - a logging library can use a list of the built-in transports (default console only), options can be found here https://github.com/winstonjs/winston#working-with-transports
+* winston - a logging library; can use a list of the built-in transports (default is console), options can be found here https://github.com/winstonjs/winston#working-with-transports
+* servers - a list of one or more servers to deploy to when using shipit (see [shipit deployment](#shipit-deployment) for details)
 
 ### Add new site
 To add new sites modify `sites.yml` as follows:

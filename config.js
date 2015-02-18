@@ -9,6 +9,6 @@ config.env = env;
 
 if (!config.device_ttl) { config.device_ttl = 3600; }
 config.redis = extend({port:6379, host:"127.0.0.1"}, config.redis);
-config.winston = extend({console:{colorize:true}}, config.winston);
+config.winston = config.winston || {"console":{"colorize":true}};
 
 module.exports = config;

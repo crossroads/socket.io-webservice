@@ -81,7 +81,7 @@ app.post("/send", function (req, res) {
   rooms.forEach(function(room) {
     if (!site.userRoomEnabled) {
       nsp.to(room).sockets.forEach(function(socket) {
-        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"room": room, "socketId": socket.id});
+        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"room": room, "socketId": socket.id, "event":req.body.event});
       });
       nsp.to(room).emit.apply(nsp, args);
       return;
@@ -107,15 +107,15 @@ app.post("/send", function (req, res) {
       var socket = nsp.getSocket(device.socketId);
       if (socket) {
         var callback = function() {
-          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message": "Remove message: " + dataId});
+          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message": "Remove message: " + dataId, "event":req.body.event});
           store.remove(nsp.name, device.storeListName, req.body.event, dataId, !req.query.resync ? null : function() {
             socket.emit("_resync");
-            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message":"Resync emitted from message: " + dataId});
+            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message":"Resync emitted from message: " + dataId, "event":req.body.event});
             store.clear(nsp.name, device.storeListName, req.body.event);
           });
         };
 
-        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id, "socketId":socket.id});
+        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id, "socketId":socket.id, "event":req.body.event});
         socket.emit.apply(socket, args.concat(callback));
       }
     });

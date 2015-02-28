@@ -226,6 +226,7 @@ Open config.yml and set a server for the environment you want to deploy to.
 
 Check in your code and use shipit to deploy. Shipit will checkout code from your git repo rather than uploading your local files.
 
+    NODE_ENV=staging grunt shipit:staging deploy
     NODE_ENV=production grunt shipit:production deploy
     NODE_ENV=production grunt shipit:production rollback
 

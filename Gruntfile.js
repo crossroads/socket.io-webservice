@@ -57,6 +57,7 @@ module.exports = function (grunt) {
    * Load shipit task.
    */
   grunt.loadNpmTasks('grunt-shipit');
+  grunt.loadNpmTasks('shipit-deploy');
 
   grunt.registerTask('copyLinkedFiles', 'Copy files from the shared directory', function() {
     var done = this.async();
@@ -91,7 +92,7 @@ module.exports = function (grunt) {
   grunt.registerTask('remote:restart', 'Restart Passenger', function() {
     var deployTo = grunt.shipit.config.deployTo;
     var currentPath =  path.join(deployTo, 'current');
-    grunt.shipit.remote('mkdir ' + path.join(currentPath, '/tmp') + ' && touch ' + currentPath + '/tmp/restart.txt', this.async());
+    grunt.shipit.remote('mkdir -p ' + path.join(currentPath, '/tmp') + ' && touch ' + currentPath + '/tmp/restart.txt', this.async());
   });
 
   /**

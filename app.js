@@ -107,10 +107,10 @@ app.post("/send", function (req, res) {
       var socket = nsp.getSocket(device.socketId);
       if (socket) {
         var callback = function() {
-          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message": "Remove message: " + dataId, "event":req.body.event});
+          logger.info({"category":"message removed","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message": "Remove message: " + dataId, "event":req.body.event, "dataId": dataId});
           store.remove(nsp.name, device.storeListName, req.body.event, dataId, !req.query.resync ? null : function() {
             socket.emit("_resync");
-            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message":"Resync emitted from message: " + dataId, "event":req.body.event});
+            logger.error({"category":"resync event","site":nsp.name,"requestId":reqId,"deviceId":device.id, "socketId":socket.id, "message":"Resync emitted from message: " + dataId, "event":req.body.event, "dataId": dataId});
             store.clear(nsp.name, device.storeListName, req.body.event);
           });
         };

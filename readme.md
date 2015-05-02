@@ -77,7 +77,7 @@ For scenarios where socket.io is used to keep a local database in sync with a se
 ```js
 // client app
 socket.on("_resync", function() {
-  window.location = window.location.href; // assumes client app performs full sync on page load
+  window.location.reload(); // assumes client app performs full sync on page load
 });
 ```
 
@@ -104,7 +104,7 @@ socket.on("_batch", function(events, success) {
 });
 
 socket.on("_resync", function() {
-  window.location = window.location.href;
+  window.location.reload();
 });
 ```
 

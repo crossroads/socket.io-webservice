@@ -1,11 +1,13 @@
 var redis = require("redis");
 var extend = require("util")._extend;
 var genId = require("./genId.js");
+var ReadWriteLock = require("rwlock");
 
 module.exports = function(redisConfig) {
 
   var redisConfig = extend({}, redisConfig, {return_buffers:false});
   var redisClient = redis.createClient(redisConfig.port, redisConfig.host, redisConfig);
+  var lock = new ReadWriteLock();
 
   function keyName(siteName, listName, event) {
     return siteName + ":socket.io:" + listName + ":" + event;
@@ -43,12 +45,16 @@ module.exports = function(redisConfig) {
     remove: function(siteName, listName, event, dataId, notFirstCallback) {
       var redisKey = keyName(siteName, listName, event);
       if (notFirstCallback) {
-        redisClient.lrange(redisKey, 0, 0, function(err, res) {
-          if (itemMatchId(res[0], dataId)) {
-            redisClient.lpop(redisKey);
-          } else {
-            notFirstCallback();
-          }
+        lock.writeLock(redisKey, function(release) {
+          redisClient.lrange(redisKey, 0, 0, function(err, res) {
+            if (itemMatchId(res[0], dataId)) {
+              redisClient.lpop(redisKey);
+              release();
+            } else {
+              release();
+              notFirstCallback();
+            }
+          });
         });
       } else {
         redisClient.lrange(redisKey, 0, -1, function(err, res) {

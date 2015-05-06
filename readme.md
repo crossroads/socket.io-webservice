@@ -172,6 +172,7 @@ newsite:
   authScheme: Bearer
   apiKey: 54321
   userRoomPrefix: user_
+  updateUserUrl: http://newsite.com/users/:id
 ```
 
 * name - is the namespace for socketio, the client connects as `io("/newsite")`
@@ -179,6 +180,7 @@ newsite:
 * authScheme - is used as part of the Authorization header that will be sent to the authUrl
 * apiKey - used to authenticate requests when sending messages to clients via this webservice
 * userRoomPrefix - the prefix rooms belonging to a single user starts with, used for determining whether to enable handling connection reliability functionality, if specified then every user must belong to a private room
+* updateUserUrl - this is the url the socketio webservice will use to update about the user's last connected and disconnected time. It will be PUT request with parameters example: {"id"=>"8", "user"=>{"last_connected"=>"2015-05-06T07:49:29.196Z"}}
 
 ## Development
 

@@ -134,6 +134,12 @@ for (var siteName in config.sites) {
     return room.indexOf(site.userRoomPrefix) === 0;
   };
 
+  nsp.userRoomID = function(room) {
+    if(room.indexOf(site.userRoomPrefix) === 0) {
+      return room.split("_").pop();
+    }
+  };
+
   nsp.getUserRooms = function(sharedRoom) {
     return Object.keys(nsp.users).filter(function(key) {
       return nsp.users[key].rooms.some(function(r) { return r.toLowerCase() == sharedRoom.toLowerCase(); });
@@ -151,6 +157,26 @@ for (var siteName in config.sites) {
   nsp.getSocket = function(socketId) {
     return nsp.sockets.filter(function(s) { return s.id == socketId; })[0];
   };
+
+  // START: Update User's last connected/disconnected(online/offline) time
+  nsp.userStateChange = function(userRoom, connected, socket) {
+    var roomId = nsp.userRoomID(userRoom);
+    var userParams = {id: roomId, user: {}};
+    userParams["user"][connected ? "last_connected" : "last_disconnected"] = new Date();
+    var userUpdateUrl = site.updateUserUrl.replace(":id", roomId);
+    var query = url.parse(socket.request.url, true).query;
+    var headers = {"Authorization": site.authScheme + " " + query.token};
+
+    httpClient.put(userUpdateUrl, {headers:headers, json:userParams}, function(error, res, body) {
+      if (error || res.statusCode !== 200) {
+        logger.error({"category":"User update error","site":nsp.name,"message":error || body,"status code":res.statusCode,"socketId":socket.id,"deviceId":socket.deviceId,"userRoom":userRoom});
+      }
+      else {
+        logger.info({"category":"User updated","socketId":socket.id,"deviceId":socket.deviceId,"userRoom":userRoom});
+      }
+    })
+  }
+  // END
 
   // socket.io authentication and room registration
   nsp.use(function(socket, next) {
@@ -203,6 +229,8 @@ for (var siteName in config.sites) {
         socket.emit.apply(socket, ["_batch", batchArgs, callback]);
       });
 
+      if(site.updateUserUrl) { nsp.userStateChange(room, true, socket) }
+
       if (config.device_ttl > 0) {
         nsp.users[room].connected = true;
         store.persist(nsp.name, device.storeListName);
@@ -212,6 +240,8 @@ for (var siteName in config.sites) {
           device.connected = false;
           device.disconnectTime = Date.now();
           store.expire(nsp.name, device.storeListName, config.device_ttl);
+
+          if(site.updateUserUrl) { nsp.userStateChange(room, false, socket) }
         });
       }
     });

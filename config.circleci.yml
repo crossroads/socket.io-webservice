@@ -1,0 +1,3 @@
+staging:
+  servers:
+    - deployer@socket-staging.goodcity.hk

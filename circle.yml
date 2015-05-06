@@ -1,0 +1,17 @@
+machine:
+  node:
+    version: 0.12
+
+dependencies:
+  pre:
+    - cp config.circleci.yml config.yml
+
+test:
+  override:
+    - echo "No tests written yet."
+
+deployment:
+  staging:
+    branch: master
+    commands:
+      - NODE_ENV=staging grunt shipit:staging deploy

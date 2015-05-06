@@ -14,4 +14,4 @@ deployment:
   staging:
     branch: master
     commands:
-      - NODE_ENV=staging grunt shipit:staging deploy
+      - NODE_ENV=staging ./node_modules/grunt-cli/bin/grunt shipit:staging deploy

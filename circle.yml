@@ -5,6 +5,7 @@ machine:
 dependencies:
   pre:
     - cp config.circleci.yml config.yml
+    - touch sites.yml
 
 test:
   override:

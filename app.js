@@ -166,7 +166,6 @@ for (var siteName in config.sites) {
     var userUpdateUrl = site.updateUserUrl.replace(":id", roomId);
     var query = url.parse(socket.request.url, true).query;
     var headers = {"Authorization": site.authScheme + " " + query.token};
-
     httpClient.put(userUpdateUrl, {headers:headers, json:userParams}, function(error, res, body) {
       if (error || res.statusCode !== 200) {
         logger.error({"category":"User update error","site":nsp.name,"message":error || body,"status code":res.statusCode,"socketId":socket.id,"deviceId":socket.deviceId,"userRoom":userRoom});
@@ -182,8 +181,7 @@ for (var siteName in config.sites) {
   nsp.use(function(socket, next) {
     nsp = socket.nsp; // for some reason without this, nsp referred to the last site's nsp
     var query = url.parse(socket.request.url, true).query;
-    var headers = {"Authorization": site.authScheme + " " + query.token};
-
+    var headers = {"Authorization": site.authScheme + " " + query.token, "X-APP-NAME": query.appName};
     httpClient.get(site.authUrl, {headers:headers, json:true}, function(error, res, data) {
       if (error) {
         logger.error({"category":"authentication","site":nsp.name,"message":"Client auth error: " + error});

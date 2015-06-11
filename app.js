@@ -181,7 +181,7 @@ for (var siteName in config.sites) {
   nsp.use(function(socket, next) {
     nsp = socket.nsp; // for some reason without this, nsp referred to the last site's nsp
     var query = url.parse(socket.request.url, true).query;
-    var headers = {"Authorization": site.authScheme + " " + query.token, "X-APP-NAME": query.appName};
+    var headers = {"Authorization": site.authScheme + " " + query.token, "X-META": query.meta};
     httpClient.get(site.authUrl, {headers:headers, json:true}, function(error, res, data) {
       if (error) {
         logger.error({"category":"authentication","site":nsp.name,"message":"Client auth error: " + error});

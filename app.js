@@ -136,7 +136,7 @@ for (var siteName in config.sites) {
 
   nsp.userRoomID = function(room) {
     if(room.indexOf(site.userRoomPrefix) === 0) {
-      return room.split("_").pop();
+      return room.split("_")[1];
     }
   };
 

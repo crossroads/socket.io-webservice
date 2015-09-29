@@ -2,7 +2,7 @@
 
 The SocketIO Web Service allows multiple sites, differentiated via socket.io namespace, to send push messages to connected clients using socket.io.
 
-When a client connects a request is made to your website to authenticate the user via the Authorization header, and to retrieve the list of rooms the client belongs to which can be a group name or individual name for direct communication. Your website can then send messages via this webservice to the clients, while the clients can communitate with your website directly.
+When a client connects a request is made to your website to authenticate the user via the Authorization header, and to retrieve the list of rooms the client belongs to which can be a group name or individual name for direct communication. Your website can then send messages via this webservice to the clients, while the clients can communicate with your website directly.
 
 * [Sending Messages](#sending-messages)
 * [Handling unreliable connections](#handling-unreliable-connections)
@@ -35,11 +35,11 @@ Supports `Content-Type` `application/json` and `application/x-www-form-urlencode
 }
 ```
 
-* resync - performs a check when client indicates message is received to ensure it's first in queue if not will clear queue and send message to client to resync all data (default false)
+* `resync` - performs a check when client indicates a message is received to ensure it's the first in the queue. If not, it will clear the queue and send a message to client to resync all data (default `false`).
 
 ## Handling unreliable connections
 
-To handle unreliable connections socket.io web service uses a redis cache to store messages and waits for the client to invoke the callback function before removing the message from redis. This is only enabled if `userRoomPrefix` setting (see add new site section) is specified and if it is then every user must belong to a user room that represents a single user.
+To handle unreliable connections socket.io web service uses a redis cache to store messages and waits for the client to invoke the callback function before removing the message from redis. This is only enabled if the `userRoomPrefix` setting (see add new site section) is specified and if it is then every user must belong to a user room that represents a single user.
 
 ```js
 // client app
@@ -72,7 +72,7 @@ function update_store(entityType, entity, successCallback) {
 }
 ```
 
-For scenarios where socket.io is used to keep a local database in sync with a server database. There is an option you can turn on called `resync` when sending a message to the client (see send messages section). On success callback a check is made on the server to ensure the message being removed is the first one in the queue for that user and event. If not, say due to a client error processing previous message so that success callback was never called, all the queued messages for that user is cleared and a `_resync` event will be sent to the client allowing a full resync to be performed:
+For scenarios where socket.io is used to keep a local database in sync with a server database. There is an option you can turn on called `resync` when sending a message to the client (see send messages section). On success callback a check is made on the server to ensure the message being removed is the first one in the queue for that user and event. If not, say due to a client error processing previous message so that success callback was never called, all the queued messages for that user are cleared and a `_resync` event will be sent to the client allowing a full resync to be performed:
 
 ```js
 // client app
@@ -80,6 +80,8 @@ socket.on("_resync", function() {
   window.location.reload(); // assumes client app performs full sync on page load
 });
 ```
+
+It is up to the client to specify what action to take when the `_resync` is received.
 
 ## Client
 

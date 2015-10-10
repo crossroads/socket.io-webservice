@@ -4,7 +4,6 @@ machine:
 
 dependencies:
   pre:
-    - cp config.circleci.yml config.yml
     - touch sites.yml
 
 test:
@@ -12,7 +11,15 @@ test:
     - echo "No tests written yet."
 
 deployment:
+  capistrano:
+    branch: capistrano
+    commands:
+      - bundle exec cap staging deploy
   staging:
     branch: master
     commands:
-      - NODE_ENV=staging ./node_modules/grunt-cli/bin/grunt shipit:staging deploy
+      - bundle exec cap staging deploy
+  production:
+    branch: live
+    commands:
+      - bundle exec cap production deploy

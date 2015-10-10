@@ -14,12 +14,12 @@ deployment:
   capistrano:
     branch: capistrano
     commands:
-      - cap staging deploy
+      - bundle exec cap staging deploy
   staging:
     branch: master
     commands:
-      - cap staging deploy
+      - bundle exec cap staging deploy
   production:
     branch: live
     commands:
-      - cap production deploy
+      - bundle exec cap production deploy

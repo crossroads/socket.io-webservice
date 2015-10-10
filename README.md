@@ -16,7 +16,7 @@ When a client connects a request is made to your website to authenticate the use
   * [Debugging](#debugging)
 * [Production](#production)
   * [Installing Nginx / Passenger](#installing-nginx--passenger)
-  * [Shipit Deployment](#shipit-deployment)
+  * [Capistrano Deployment](#capistrano-deployment)
 * [Known Issues](#known-issues)
 
 ## Sending Messages
@@ -163,7 +163,6 @@ production:
   * serviceHost - the host name of the airbrake server instance (default api.airbrake.io)
   * a full list of options (will be set as properties of airbrake instance) can be found here https://github.com/felixge/node-airbrake
 * winston - a logging library; can use a list of the built-in transports (default is console), options can be found here https://github.com/winstonjs/winston#working-with-transports
-* servers - a list of one or more servers to deploy to when using shipit (see [shipit deployment](#shipit-deployment) for details)
 
 ### Add new site
 To add new sites modify `sites.yml` as follows:
@@ -217,22 +216,13 @@ gem install passenger
 rvmsudo passenger-install-nginx-module --languages nodejs --auto
 ```
 
-### Shipit deployment
+### Capistrano Deployment
 
-Uses the [Shipit framework](https://github.com/shipitjs/grunt-shipit) (it's like Capistrano is for Ruby).
+Check in your code and push it upstream as Capistrano will checkout code from your git repo rather than uploading your local files.
 
-Open config.yml and set a server for the environment you want to deploy to.
-
-  production:
-    servers:
-      - deployer@server1.example.com
-      - deployer@server2.example.com
-
-Check in your code and use shipit to deploy. Shipit will checkout code from your git repo rather than uploading your local files.
-
-    NODE_ENV=staging grunt shipit:staging deploy
-    NODE_ENV=production grunt shipit:production deploy
-    NODE_ENV=production grunt shipit:production rollback
+    cap staging deploy
+    cap production deploy
+    cap production deploy:rollback
 
 The deploy script automatically handles `npm install` on the remote machine and ensures shared files are symlinked to the current folder.
 

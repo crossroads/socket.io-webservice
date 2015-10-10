@@ -1,3 +1,0 @@
-staging:
-  servers:
-    - "deployer@socket-staging.goodcity.hk:59207"

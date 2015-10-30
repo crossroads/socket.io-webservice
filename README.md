@@ -39,7 +39,7 @@ Supports `Content-Type` `application/json` and `application/x-www-form-urlencode
 
 ## Handling unreliable connections
 
-To handle unreliable connections socket.io web service uses a redis cache to store messages and waits for the client to invoke the callback function before removing the message from redis. This is only enabled if the `userRoomPrefix` setting (see add new site section) is specified and if it is then every user must belong to a user room that represents a single user.
+To handle unreliable connections socket.io web service uses a Redis cache to store messages and waits for the client to invoke the callback function before removing the message from redis. This is only enabled if the `userRoomPrefix` setting (see add new site section) is specified and if it is then every user must belong to a user room that represents a single user.
 
 ```js
 // client app

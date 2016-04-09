@@ -197,7 +197,7 @@ for (var siteName in config.sites) {
         return next(new Error("User is missing a private room"));
       }
       logger.info({"category":"rooms registered","socketId":socket.id,"rooms":data});
-      socket.rooms.forEach(function(room) { socket.leave(room); });
+      Object.keys(socket.rooms).forEach(function(room) { socket.leave(room); });
       data.forEach(function(room) { socket.join(room); });
       next();
     });
@@ -206,13 +206,14 @@ for (var siteName in config.sites) {
   // send missed messages
   nsp.on("connection", function(socket) {
     nsp = socket.nsp; // for some reason without this, nsp referred to the last site's nsp
+    var socketRooms = Object.keys(socket.rooms);
     var deviceId = url.parse(socket.request.url, true).query.deviceId || "";
     socket.deviceId = deviceId;
-    logger.info({"category":"socket connected","site":nsp.name,"socketId":socket.id,"rooms":socket.rooms,"deviceId":deviceId});
+    logger.info({"category":"socket connected","site":nsp.name,"socketId":socket.id,"rooms":socketRooms,"deviceId":deviceId});
     socket.emit("_settings", {"device_ttl":config.device_ttl});
-    socket.rooms.filter(nsp.isUserRoom).forEach(function(room) {
+    socketRooms.filter(nsp.isUserRoom).forEach(function(room) {
       if (!nsp.users[room]) {
-        nsp.users[room] = {"rooms": socket.rooms, "devices": []};
+        nsp.users[room] = {"rooms": socketRooms, "devices": []};
       }
       var device = nsp.users[room].devices.filter(function(d) { return d.id == deviceId; })[0];
       if (!device) {

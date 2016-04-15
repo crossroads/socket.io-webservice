@@ -80,8 +80,8 @@ app.post("/send", function (req, res) {
 
   rooms.forEach(function(room) {
     if (!site.userRoomEnabled) {
-      nsp.to(room).sockets.forEach(function(socket) {
-        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"room": room, "socketId": socket.id, "event":req.body.event});
+      Object.values(nsp.to(room).sockets).forEach(function(socketId) {
+        logger.info({"category":"message sent","site":nsp.name,"requestId":reqId,"room": room, "socketId": socketId, "event":req.body.event});
       });
       nsp.to(room).emit.apply(nsp, args);
       return;
@@ -155,7 +155,7 @@ for (var siteName in config.sites) {
   };
 
   nsp.getSocket = function(socketId) {
-    return nsp.sockets.filter(function(s) { return s.id == socketId; })[0];
+    return nsp.sockets[socketId];
   };
 
   // START: Update User's last connected/disconnected(online/offline) time
@@ -198,8 +198,14 @@ for (var siteName in config.sites) {
       }
       logger.info({"category":"rooms registered","socketId":socket.id,"rooms":data});
       Object.keys(socket.rooms).forEach(function(room) { socket.leave(room); });
-      data.forEach(function(room) { socket.join(room); });
-      next();
+
+      if (!data.length) {
+        return next();
+      }
+
+      // proceed once last room has completed joining
+      data.slice(0,-1).forEach(function(room) { socket.join(room); });
+      socket.join(data.slice(-1), next);
     });
   });
 

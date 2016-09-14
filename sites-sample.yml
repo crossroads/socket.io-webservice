@@ -4,3 +4,4 @@ newsite:
   apiKey: 54321
   userRoomPrefix: user_
   updateUserUrl: http://newsite.com/users/:id
+  publicChannel: browse

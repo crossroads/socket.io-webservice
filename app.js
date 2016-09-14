@@ -131,8 +131,12 @@ for (var siteName in config.sites) {
 
   // helper functions
   nsp.isUserRoom = function(room) {
-    return room.indexOf(site.userRoomPrefix) === 0;
+    return nsp.isPublicRoom || room.indexOf(site.userRoomPrefix) === 0;
   };
+
+  nsp.isPublicRoom = function(room) {
+    return room === site.publicChannel;
+  }
 
   nsp.userRoomID = function(room) {
     if(room.indexOf(site.userRoomPrefix) === 0) {
@@ -227,7 +231,9 @@ for (var siteName in config.sites) {
         socket.emit.apply(socket, ["_batch", batchArgs, callback]);
       });
 
-      if(site.updateUserUrl) { nsp.userStateChange(room, true, socket) }
+      if(site.updateUserUrl && !nsp.isPublicRoom) {
+        nsp.userStateChange(room, true, socket)
+      }
 
       if (config.device_ttl > 0) {
         nsp.users[room].connected = true;
@@ -239,7 +245,9 @@ for (var siteName in config.sites) {
           device.disconnectTime = Date.now();
           store.expire(nsp.name, device.storeListName, config.device_ttl);
 
-          if(site.updateUserUrl) { nsp.userStateChange(room, false, socket) }
+          if(site.updateUserUrl && !nsp.isPublicRoom) {
+            nsp.userStateChange(room, false, socket)
+          }
         });
       }
     });

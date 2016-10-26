@@ -131,7 +131,7 @@ for (var siteName in config.sites) {
 
   // helper functions
   nsp.isUserRoom = function(room) {
-    return nsp.isPublicRoom || room.indexOf(site.userRoomPrefix) === 0;
+    return nsp.isPublicRoom(room) || room.indexOf(site.userRoomPrefix) === 0;
   };
 
   nsp.isPublicRoom = function(room) {
@@ -238,7 +238,7 @@ for (var siteName in config.sites) {
         socket.emit.apply(socket, ["_batch", batchArgs, callback]);
       });
 
-      if(site.updateUserUrl && !nsp.isPublicRoom) {
+      if(site.updateUserUrl && !nsp.isPublicRoom(room)) {
         nsp.userStateChange(room, true, socket)
       }
 
@@ -252,7 +252,7 @@ for (var siteName in config.sites) {
           device.disconnectTime = Date.now();
           store.expire(nsp.name, device.storeListName, config.device_ttl);
 
-          if(site.updateUserUrl && !nsp.isPublicRoom) {
+          if(site.updateUserUrl && !nsp.isPublicRoom(room)) {
             nsp.userStateChange(room, false, socket)
           }
         });

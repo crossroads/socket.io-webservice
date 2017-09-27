@@ -1,5 +1,8 @@
 # SocketIO Web Service
 
+[![Code Climate](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/gpa.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
+[![Issue Count](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/issue_count.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
+
 The SocketIO Web Service allows multiple sites, differentiated via socket.io namespace, to send push messages to connected clients using socket.io.
 
 When a client connects a request is made to your website to authenticate the user via the Authorization header, and to retrieve the list of rooms the client belongs to which can be a group name or individual name for direct communication. Your website can then send messages via this webservice to the clients, while the clients can communicate with your website directly.

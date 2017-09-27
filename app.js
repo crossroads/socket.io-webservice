@@ -171,7 +171,7 @@ for (var siteName in config.sites) {
     var query = url.parse(socket.request.url, true).query;
     var headers = {"Authorization": site.authScheme + " " + query.token};
     httpClient.put(userUpdateUrl, {headers:headers, json:userParams}, function(error, res, body) {
-      if (error || res.statusCode !== 200) {
+      if (error || (res.statusCode && res.statusCode !== 200)) {
         logger.error({"category":"User update error","site":nsp.name,"message":error || body,"status code":res.statusCode,"socketId":socket.id,"deviceId":socket.deviceId,"userRoom":userRoom});
       }
       else {
@@ -190,15 +190,18 @@ for (var siteName in config.sites) {
       if (error) {
         logger.error({"category":"authentication","site":nsp.name,"message":"Client auth error: " + error});
         return next(new Error("Auth error: " + error));
-      } else if (res.statusCode === 401) {
+      } else if (res.statusCode && res.statusCode === 401) {
         logger.error({"category":"authentication","site":nsp.name,"message":"Client auth failed"});
         return next(new Error("Authentication failed"));
-      } else if (res.statusCode !== 200) {
+      } else if (res.statusCode && res.statusCode !== 200) {
         logger.error({"category":"authentication","site":nsp.name,"message":"Auth " + res.statusCode + " error"});
         return next(new Error("Auth " + res.statusCode + " error"));
       } else if (site.userRoomEnabled && !data.some(function(r) { return nsp.isUserRoom(r); })) {
         logger.error({"category":"authentication","site":nsp.name,"message":"User is missing a private room"});
         return next(new Error("User is missing a private room"));
+      } else if (!res.statusCode) {
+        logger.error({"message":"Error status code not set"})
+        return next(new Error("Error status code not set"));
       }
       logger.info({"category":"rooms registered","socketId":socket.id,"rooms":data});
       Object.keys(socket.rooms).forEach(function(room) { socket.leave(room); });

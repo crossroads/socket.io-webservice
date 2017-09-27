@@ -199,6 +199,9 @@ for (var siteName in config.sites) {
       } else if (site.userRoomEnabled && !data.some(function(r) { return nsp.isUserRoom(r); })) {
         logger.error({"category":"authentication","site":nsp.name,"message":"User is missing a private room"});
         return next(new Error("User is missing a private room"));
+      } else if (!res.statusCode) {
+        logger.error({"message":"Error status code not set"})
+        return next(new Error("Error status code not set"));
       }
       logger.info({"category":"rooms registered","socketId":socket.id,"rooms":data});
       Object.keys(socket.rooms).forEach(function(room) { socket.leave(room); });

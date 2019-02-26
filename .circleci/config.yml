@@ -19,6 +19,13 @@ aliases:
   - &yarn
     |
       yarn install --non-interactive --cache-folder ~/.cache/yarn --frozen-lockfile
+    
+  - &restore-bundle-cache
+      key: socket-goodcity-bundle-{{ checksum "Gemfile.lock" }}
+  - &save-bundle-cache
+      key: socket-goodcity-bundle-{{ checksum "Gemfile.lock" }}
+      paths:
+        - vendor/bundle
 
 jobs:
   checkout_code:
@@ -40,9 +47,13 @@ jobs:
       
   deployment:
     <<: *defaults
+    docker:
+      - image: circleci/ruby:2.5.1-node
     steps:
       - restore-cache: *restore-repo-cache
       - restore-cache: *restore-yarn-cache
+      - run: bundle check --path=vendor/bundle || bundle install --deployment --jobs=4 --retry=3
+      - save-cache: *save-bundle-cache
       - run:
           name: Setup Environment
           command: echo 'export ENVIRONMENT=$(if [ "$CIRCLE_BRANCH" == "live" ]; then echo production; else echo staging; fi)' >> $BASH_ENV

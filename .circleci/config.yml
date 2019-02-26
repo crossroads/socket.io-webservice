@@ -48,7 +48,7 @@ jobs:
   deployment:
     <<: *defaults
     docker:
-      - image: circleci/ruby:2.6.6-node
+      - image: circleci/ruby:2.6.0-node
     steps:
       - restore-cache: *restore-repo-cache
       - restore-cache: *restore-yarn-cache

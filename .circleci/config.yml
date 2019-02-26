@@ -4,7 +4,7 @@ aliases:
 
   - defaults: &defaults
       docker:
-        - image: circleci/node:carbon
+        - image: circleci/node:boron
       working_directory: ~/code
   - &restore-repo-cache
       key: socket-goodcity-repo-{{ .Environment.CIRCLE_SHA1 }}

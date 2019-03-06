@@ -1,0 +1,75 @@
+version: 2
+
+aliases:
+
+  - defaults: &defaults
+      docker:
+        - image: circleci/node:boron
+      working_directory: ~/code
+  - &restore-repo-cache
+      key: socket-goodcity-repo-{{ .Environment.CIRCLE_SHA1 }}
+  - &restore-yarn-cache
+      keys:
+        - socket-goodcity-yarn-packages-{{ checksum "yarn.lock" }}
+  - &save-yarn-cache
+      key: socket-goodcity-yarn-packages-{{ checksum "yarn.lock" }}
+      paths:
+        - node_modules
+        - ~/.cache/yarn
+  - &yarn
+    |
+      yarn install --non-interactive --cache-folder ~/.cache/yarn --frozen-lockfile
+    
+  - &restore-bundle-cache
+      key: socket-goodcity-bundle-{{ checksum "Gemfile.lock" }}
+  - &save-bundle-cache
+      key: socket-goodcity-bundle-{{ checksum "Gemfile.lock" }}
+      paths:
+        - vendor/bundle
+
+jobs:
+  checkout_code:
+    <<: *defaults
+    steps:
+      - checkout
+      - save_cache:
+          key: socket-goodcity-repo-{{ .Environment.CIRCLE_SHA1 }}
+          paths:
+            - ~/code
+
+  package_dependencies:
+    <<: *defaults
+    steps:
+      - restore-cache: *restore-repo-cache
+      - restore-cache: *restore-yarn-cache
+      - run: *yarn
+      - save-cache: *save-yarn-cache
+      
+  deployment:
+    <<: *defaults
+    docker:
+      - image: circleci/ruby:2.6.0-node
+    steps:
+      - restore-cache: *restore-repo-cache
+      - restore-cache: *restore-yarn-cache
+      - run: bundle check --path=vendor/bundle || bundle install --deployment --jobs=4 --retry=3
+      - save-cache: *save-bundle-cache
+      - run:
+          name: Setup Environment
+          command: echo 'export ENVIRONMENT=$(if [ "$CIRCLE_BRANCH" == "live" ]; then echo production; else echo staging; fi)' >> $BASH_ENV
+      - run: bundle exec cap $ENVIRONMENT deploy
+
+workflows:
+    version: 2
+    build-test-and-deploy:
+      jobs:
+        - checkout_code
+        - package_dependencies:
+            requires:
+              - checkout_code
+        - deployment:
+            requires:
+              - package_dependencies
+            filters:
+              branches:
+                only: /^(master|live)$/

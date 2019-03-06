@@ -3,6 +3,8 @@
 [![Code Climate](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/gpa.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
 [![Issue Count](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/issue_count.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
 
+This project currently runs on NodeJS v6 LTS (boron).
+
 The SocketIO Web Service allows multiple sites, differentiated via socket.io namespace, to send push messages to connected clients using socket.io.
 
 When a client connects a request is made to your website to authenticate the user via the Authorization header, and to retrieve the list of rooms the client belongs to which can be a group name or individual name for direct communication. Your website can then send messages via this webservice to the clients, while the clients can communicate with your website directly.
@@ -194,6 +196,21 @@ newsite:
 * Install nodejs - https://github.com/creationix/nvm
 * `git clone` this repository
 * `npm install`
+
+### Installation on Server
+
+As deployer user:
+
+```shell
+curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
+nvm install lts/boron    # v6
+```
+
+Add the following line to Passenger conf
+
+```
+passenger_nodejs /home/deployer/.nvm/versions/node/v6.14.3/bin/node;
+```
 
 ### Running
 

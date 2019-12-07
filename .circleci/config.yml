@@ -54,10 +54,10 @@ jobs:
       - restore-cache: *restore-yarn-cache
       - run: bundle check --path=vendor/bundle || bundle install --deployment --jobs=4 --retry=3
       - save-cache: *save-bundle-cache
-      - run:
-          name: Setup Environment
-          command: echo 'export ENVIRONMENT=$(if [ "$CIRCLE_BRANCH" == "live" ]; then echo production; else echo staging; fi)' >> $BASH_ENV
-      - run: bundle exec cap $ENVIRONMENT deploy
+      - run: |
+        [ "$CIRCLE_BRANCH" == "live" ] && bundle exec cap production deploy
+        [ "$CIRCLE_BRANCH" == "master" ] && bundle exec cap staging deploy
+        [ "$CIRCLE_BRANCH" == "preview" ] && bundle exec cap preview deploy
 
 workflows:
     version: 2
@@ -72,4 +72,4 @@ workflows:
               - package_dependencies
             filters:
               branches:
-                only: /^(master|live)$/
+                only: /^(master|live|preview)$/

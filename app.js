@@ -102,7 +102,7 @@ app.post("/send", function (req, res) {
       }
 
       var dataId = store.add(nsp.name, device.storeListName, req.body.event, args);
-      logger.info({"category":"message stored","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id, "args": args});
+      logger.info({"category":"message stored","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id});
 
       var socket = nsp.getSocket(device.socketId);
       if (socket) {

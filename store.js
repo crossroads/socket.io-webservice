@@ -6,7 +6,7 @@ var ReadWriteLock = require("rwlock");
 module.exports = function(redisConfig) {
 
   var redisConfig = extend({}, redisConfig, {return_buffers:false});
-  var redisClient = redis.createClient(redisConfig.port, redisConfig.host, redisConfig);
+  var redisClient = redis.createClient(redisConfig);
   var lock = new ReadWriteLock();
 
   function keyName(siteName, listName, event) {

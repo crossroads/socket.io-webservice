@@ -32,8 +32,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 var redis = require("redis");
 var redisAdapter = require("socket.io-redis");
 config.redis.return_buffers = true;
-var pub = redis.createClient(config.redis.port, config.redis.host, config.redis);
-var sub = redis.createClient(config.redis.port, config.redis.host, config.redis);
+var pub = redis.createClient(config.redis);
+var sub = redis.createClient(config.redis);
 io.adapter(redisAdapter({pubClient: pub, subClient: sub}));
 
 // start app

@@ -27,10 +27,11 @@ module.exports = function(redisConfig) {
   }
 
   return {
-    add: function(siteName, listName, event, data) {
+    add: function(siteName, listName, event, data, ttl) {
       var dataId = genId();
       var redisKey = keyName(siteName, listName, event);
       redisClient.rpush(redisKey, dataId + ":" + JSON.stringify(data));
+      redisClient.expire(redisKey, ttl);
       return dataId;
     },
 

@@ -128,9 +128,7 @@ production:
   port: 80
   device_ttl: 3600
   redis:
-    port: 6379
-    host: 127.0.0.1
-    auth_pass: 12345
+    url: rediss://:<password>@<host>:<port>/<database>
   flakeid:
     datacenter: 0
     worker: 0
@@ -155,9 +153,7 @@ production:
 * port - the port the socket.io webservice will be available at (default 1337)
 * device_ttl - the time messages will continue to be kept once the client becomes offline, set to 0 for messages to be kept indefinitely (default 3600 sec)
 * redis
-  * host - the hostname of the redis service to use (default 127.0.0.1)
-  * port - the port number of the redis service to use (default 6379)
-  * a full list of options can be found here https://github.com/mranney/node_redis#rediscreateclient
+  * url - standard Redis connection url
 * flakeid (used to id messages in redis queue)
   * a full list of options can be found here https://github.com/T-PWK/flake-idgen#usage
 * io

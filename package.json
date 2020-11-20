@@ -20,7 +20,6 @@
   "license": "MIT",
   "repository": "https://github.com/crossroads/socket.io-webservice",
   "dependencies": {
-    "airbrake": "^1.0.1",
     "biguint-format": "^1.0.0",
     "body-parser": "^1.15.1",
     "express": "^4.13.4",

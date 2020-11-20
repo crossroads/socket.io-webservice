@@ -10,10 +10,6 @@ production:
     worker: 0
   io:
     pingTimeout: 60000
-  airbrake:
-    key: 12345
-    protocol: https
-    serviceHost: api.airbrake.io
   winston:
     file:
       level: info

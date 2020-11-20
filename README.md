@@ -134,10 +134,6 @@ production:
     worker: 0
   io:
     pingTimeout: 60000
-  airbrake:
-    key: 12345
-    protocol: https
-    serviceHost: api.airbrake.io
   winston:
     file:
       level: info
@@ -158,11 +154,6 @@ production:
   * a full list of options can be found here https://github.com/T-PWK/flake-idgen#usage
 * io
   * a full list of options can be found here https://github.com/Automattic/socket.io#serveroptsobject
-* airbrake (optional, a [webservice](https://github.com/errbit/errbit) to log errors to)
-  * key - the api key used to authorize access to the airbrake server instance
-  * protocol - the http protocol of the airbrake server instance (default http)
-  * serviceHost - the host name of the airbrake server instance (default api.airbrake.io)
-  * a full list of options (will be set as properties of airbrake instance) can be found here https://github.com/felixge/node-airbrake
 * winston - a logging library; can use a list of the built-in transports (default is console), options can be found here https://github.com/winstonjs/winston#working-with-transports
 
 ### Add new site

@@ -4,18 +4,12 @@ production:
   port: 80
   device_ttl: 3600
   redis:
-    port: 6379
-    host: 127.0.0.1
-    auth_pass: 12345
+    url: rediss://:<password>@<host>:<port>/<database>
   flakeid:
     datacenter: 0
     worker: 0
   io:
     pingTimeout: 60000
-  airbrake:
-    key: 12345
-    protocol: https
-    serviceHost: api.airbrake.io
   winston:
     file:
       level: info

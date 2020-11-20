@@ -128,18 +128,12 @@ production:
   port: 80
   device_ttl: 3600
   redis:
-    port: 6379
-    host: 127.0.0.1
-    auth_pass: 12345
+    url: rediss://:<password>@<host>:<port>/<database>
   flakeid:
     datacenter: 0
     worker: 0
   io:
     pingTimeout: 60000
-  airbrake:
-    key: 12345
-    protocol: https
-    serviceHost: api.airbrake.io
   winston:
     file:
       level: info
@@ -155,18 +149,11 @@ production:
 * port - the port the socket.io webservice will be available at (default 1337)
 * device_ttl - the time messages will continue to be kept once the client becomes offline, set to 0 for messages to be kept indefinitely (default 3600 sec)
 * redis
-  * host - the hostname of the redis service to use (default 127.0.0.1)
-  * port - the port number of the redis service to use (default 6379)
-  * a full list of options can be found here https://github.com/mranney/node_redis#rediscreateclient
+  * url - standard Redis connection url
 * flakeid (used to id messages in redis queue)
   * a full list of options can be found here https://github.com/T-PWK/flake-idgen#usage
 * io
   * a full list of options can be found here https://github.com/Automattic/socket.io#serveroptsobject
-* airbrake (optional, a [webservice](https://github.com/errbit/errbit) to log errors to)
-  * key - the api key used to authorize access to the airbrake server instance
-  * protocol - the http protocol of the airbrake server instance (default http)
-  * serviceHost - the host name of the airbrake server instance (default api.airbrake.io)
-  * a full list of options (will be set as properties of airbrake instance) can be found here https://github.com/felixge/node-airbrake
 * winston - a logging library; can use a list of the built-in transports (default is console), options can be found here https://github.com/winstonjs/winston#working-with-transports
 
 ### Add new site

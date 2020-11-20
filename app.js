@@ -6,17 +6,6 @@ var config = require("./config.js");
 var store = require("./store.js")(config.redis);
 var io = require("socket.io")(server, config.io);
 
-// error handling
-var errorHandler;
-if (config.airbrake && config.airbrake.key) {
-  var airbrake = require("airbrake").createClient(config.airbrake.key, config.env);
-  for (var setting in config.airbrake) {
-    airbrake[setting] = config.airbrake[setting];
-  }
-  // this registers uncaughtException for node errors and then returns error handler
-  errorHandler = airbrake.expressHandler();
-}
-
 // utilities
 var url = require("url");
 var httpClient = require("request");
@@ -32,8 +21,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 var redis = require("redis");
 var redisAdapter = require("socket.io-redis");
 config.redis.return_buffers = true;
-var pub = redis.createClient(config.redis.port, config.redis.host, config.redis);
-var sub = redis.createClient(config.redis.port, config.redis.host, config.redis);
+var pub = redis.createClient(config.redis);
+var sub = redis.createClient(config.redis);
 io.adapter(redisAdapter({pubClient: pub, subClient: sub}));
 
 // start app
@@ -101,7 +90,7 @@ app.post("/send", function (req, res) {
         return;
       }
 
-      var dataId = store.add(nsp.name, device.storeListName, req.body.event, args);
+      var dataId = store.add(nsp.name, device.storeListName, req.body.event, args, config.device_ttl);
       logger.info({"category":"message stored","site":nsp.name,"requestId":reqId,"dataId": dataId, "room": room, "deviceId": device.id});
 
       var socket = nsp.getSocket(device.socketId);
@@ -262,9 +251,4 @@ for (var siteName in config.sites) {
       }
     });
   });
-}
-
-// this needs to came after other app.use that you want to record errors for
-if (errorHandler) {
-  app.use(errorHandler);
 }

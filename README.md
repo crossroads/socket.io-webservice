@@ -182,7 +182,7 @@ newsite:
 * Install redis - `sudo apt-get install redis-server redis-tools`
 * Install nodejs - https://github.com/creationix/nvm
 * `git clone` this repository
-* `npm install`
+* `yarn install`
 
 ### Installation on Server
 

@@ -10,7 +10,7 @@ services:
     networks:
       - socket-io-webservice
     volumes:
-      - ./:/app
+      - ${PWD}/:/app
     ports:
       - '1337:1337'
     environment:

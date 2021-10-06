@@ -239,7 +239,7 @@ gem install passenger
 rvmsudo passenger-install-nginx-module --languages nodejs --auto
 ```
 
-###Capistrano Deployment
+### Capistrano Deployment
 
 Check in your code and push it upstream as Capistrano will checkout code from your git repo rather than uploading your local files.
 

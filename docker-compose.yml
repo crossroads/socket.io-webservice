@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    networks:
+      - socket-io-webservice
+    volumes:
+      - ${PWD}/config.yml:/app/config.yml
+      - ${PWD}/sites.yml:/app/sites.yml
+    ports:
+      - '1337:1337'
+    environment:
+      PORT: 1337
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    command: --requirepass mypassword
+    networks:
+      - socket-io-webservice
+    volumes:
+      - redis-data:/data
+
+networks:
+  socket-io-webservice:
+
+volumes:
+  redis-data:

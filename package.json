@@ -4,7 +4,8 @@
   "description": "A web service that provides push message services using socket.io",
   "main": "app.js",
   "scripts": {
-    "start": "DEBUG=app NODE_ENV=development nodemon app.js",
+    "start": "NODE_ENV=production node app.js",
+    "dev": "DEBUG=app NODE_ENV=development nodemon app.js",
     "debug": "DEBUG=app NODE_ENV=development node-debug app.js"
   },
   "keywords": [

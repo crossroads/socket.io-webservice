@@ -177,16 +177,14 @@ newsite:
 
 ## Development
 
-### Installation
+### Manual Installation
 
 * Install redis - `sudo apt-get install redis-server redis-tools`
 * Install nodejs - https://github.com/creationix/nvm
 * `git clone` this repository
 * `yarn install`
 
-### Installation on Server
-
-As deployer user:
+Install `nvm` and Node v6:
 
 ```shell
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
@@ -199,15 +197,33 @@ Add the following line to Passenger conf
 passenger_nodejs /home/deployer/.nvm/versions/node/v6.14.3/bin/node;
 ```
 
-### Running
+Run the app in `dev` mode with `nodemon`:
 
-* `npm start`
+* `npm run dev`
 * Visit your app at http://localhost:1337.
 
-### Debugging
+Run the app in `debug` mode with `node-debug`:
 
 * `npm run debug`
 * Add a break point at start of app and hit continue in the debugger
+* Visit your app at e.g. http://localhost:1337 in a different tab
+* Now you can add a break point where you want to debug
+
+### Docker setup
+
+* `git clone` this repository
+* `yarn install`
+
+Run the app in `dev` mode with `nodemon`:
+
+* `docker-compose --file docker-compose.local.yml up -d`
+* Visit your app at http://localhost:1337.
+
+Run the app in `debug` mode with `node-debug`:
+
+* Change the start command of `app` in  `docker-compose.local.yml` to `npm run debug`
+* Add a break point at start of app and hit continue in the debugger
+* `docker-compose --file docker-compose.local.yml up -d`
 * Visit your app at e.g. http://localhost:1337 in a different tab
 * Now you can add a break point where you want to debug
 
@@ -232,6 +248,14 @@ Check in your code and push it upstream as Capistrano will checkout code from yo
     cap production deploy:rollback
 
 The deploy script automatically handles `npm install` on the remote machine and ensures shared files are symlinked to the current folder.
+
+### Docker Deployment
+
+* `git clone` this repository and `cd` into the repository folder
+* Run `docker-compose build` to build the container image from source
+* Now you can move the `docker-compose.yml` to another folder together with a `config.yml` and `sites.yml`
+* In the folder with the `docker-compose.yml` run `docker-compose up -d`
+* Your app is now reachable on port `1337` on the server
 
 ## Known issues
 

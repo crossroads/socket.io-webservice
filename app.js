@@ -27,7 +27,7 @@ io.adapter(redisAdapter({pubClient: pub, subClient: sub}));
 
 // start app
 var port = process.env.PORT || config.port || 1337;
-logger.info({"category": "app start", "message": "Listening on " + port});
+logger.info({"category": "app start", "env" : config.env, "message": "Listening on " + port});
 server.listen(port);
 
 // send message to client

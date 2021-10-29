@@ -14,4 +14,4 @@ WORKDIR /app
 
 RUN yarn install
 
-ENTRYPOINT npm start
+ENTRYPOINT yarn start

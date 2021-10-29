@@ -121,7 +121,25 @@ socket.on("_resync", function() {
 
 ## Config
 
-Configuration details are stored in `config.yml` and before the app starts `NODE_ENV` can be set to either `development` or `production`. If no environment is specified it defaults to production.
+You can configure an app suitable for docker using just environment variables. For example:
+
+```
+NODE_ENV=production
+REDIS_URL=rediss://:<password>@<host>:<port>/<database>
+DEVICE_TTL=3600
+PORT=80
+SITE_NAME=goodcity
+AUTH_URL=https://<path to api>/api/v1/auth/current_user_rooms
+AUTH_SCHEME=Bearer
+API_KEY=<insert api key>
+USER_ROOM_PREFIX=user_
+UPDATE_USER_URL=https://<path to api>/api/v1/users/:id
+PUBLIC_CHANNEL=browse
+```
+
+The above will default to STDOUT logging.
+
+Configuration details can also be stored in `config.yml` if you want more sites or more finegrained control over logging. Note: if no environment is specified it defaults to production.
 
 ```yml
 production:
@@ -157,7 +175,7 @@ production:
 * winston - a logging library; can use a list of the built-in transports (default is console), options can be found here https://github.com/winstonjs/winston#working-with-transports
 
 ### Add new site
-To add new sites modify `sites.yml` as follows:
+A single site can be configured using ENV variables however, you can also specify a `sites.yml` as follows:
 
 ```yml
 newsite:
@@ -168,12 +186,14 @@ newsite:
   updateUserUrl: http://newsite.com/users/:id
 ```
 
-* name - is the namespace for socketio, the client connects as `io("/newsite")`
+* newsite - is the namespace for socketio, the client connects as `io("/newsite")`
 * authUrl - this is the url the socketio webservice will use to retrieve the rooms the authenticated user belongs to, the client is required to provide the token `io("/newsite?token=12345")` on connection and will form part of the Authorization header that will be used when the request is made to authUrl
 * authScheme - is used as part of the Authorization header that will be sent to the authUrl
 * apiKey - used to authenticate requests when sending messages to clients via this webservice
 * userRoomPrefix - the prefix rooms belonging to a single user starts with, used for determining whether to enable handling connection reliability functionality, if specified then every user must belong to a private room
 * updateUserUrl - this is the url the socketio webservice will use to update about the user's last connected and disconnected time. It will be PUT request with parameters example: {"id"=>"8", "user"=>{"last_connected"=>"2015-05-06T07:49:29.196Z"}}
+
+Use sites.yml if you have more than one site to configure.
 
 ## Development
 
@@ -197,19 +217,24 @@ Add the following line to Passenger conf
 passenger_nodejs /home/deployer/.nvm/versions/node/v6.14.3/bin/node;
 ```
 
+Run the app normally (starts server at http://localhost:1337):
+
+`yarn start`
+
 Run the app in `dev` mode with `nodemon`:
 
-* `npm run dev`
-* Visit your app at http://localhost:1337.
+`yarn dev`
 
 Run the app in `debug` mode with `node-debug`:
 
-* `npm run debug`
+`yarn debug`
+
 * Add a break point at start of app and hit continue in the debugger
 * Visit your app at e.g. http://localhost:1337 in a different tab
 * Now you can add a break point where you want to debug
 
-### Docker setup
+
+## Docker setup
 
 * `git clone` this repository
 * `yarn install`

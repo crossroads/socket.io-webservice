@@ -30,6 +30,11 @@ var port = process.env.PORT || config.port || 1337;
 logger.info({"category": "app start", "env" : config.env, "message": "Listening on " + port});
 server.listen(port);
 
+// load balancers and API gateways like to be able to ping something to check app is running
+app.get('/healthcheck', function (req, res) {
+  res.send('ok')
+});
+
 // send message to client
 app.post("/send", function (req, res) {
   var reqId = genId();

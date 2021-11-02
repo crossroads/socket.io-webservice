@@ -99,7 +99,7 @@ var socket = io("http://domain.com/<namespace>?token=12345&deviceId=090909");
 * token - is the token that will form the authorization header with authScheme in sites.yml that will be sent with the request to retrieve rooms from authUrl defined in sites.yml (see add new site)
 * deviceId - this is intended for support of a single user having multiple devices (e.g. could be a user with two browser tabs open if not updating a shared data storage)
 
-### Special events
+## Special events
 
 ```js
 // client app
@@ -174,7 +174,7 @@ production:
   * a full list of options can be found here https://github.com/Automattic/socket.io#serveroptsobject
 * winston - a logging library; can use a list of the built-in transports (default is console), options can be found here https://github.com/winstonjs/winston#working-with-transports
 
-### Add new site
+## Add new site
 A single site can be configured using ENV variables however, you can also specify a `sites.yml` as follows:
 
 ```yml
@@ -195,9 +195,7 @@ newsite:
 
 Use sites.yml if you have more than one site to configure.
 
-## Development
-
-### Manual Installation
+## Manual Installation
 
 * Install redis - `sudo apt-get install redis-server redis-tools`
 * Install nodejs - https://github.com/creationix/nvm
@@ -252,9 +250,7 @@ Run the app in `debug` mode with `node-debug`:
 * Visit your app at e.g. http://localhost:1337 in a different tab
 * Now you can add a break point where you want to debug
 
-## Production
-
-### Installing nginx / passenger
+## Installing nginx / passenger
 
 Assumes you've installed rvm already
 
@@ -264,7 +260,7 @@ gem install passenger
 rvmsudo passenger-install-nginx-module --languages nodejs --auto
 ```
 
-### Capistrano Deployment
+## Capistrano Deployment
 
 Check in your code and push it upstream as Capistrano will checkout code from your git repo rather than uploading your local files.
 
@@ -274,13 +270,26 @@ Check in your code and push it upstream as Capistrano will checkout code from yo
 
 The deploy script automatically handles `npm install` on the remote machine and ensures shared files are symlinked to the current folder.
 
-### Docker Deployment
+## Docker Compose
 
 * `git clone` this repository and `cd` into the repository folder
 * Run `docker-compose build` to build the container image from source
 * Now you can move the `docker-compose.yml` to another folder together with a `config.yml` and `sites.yml`
 * In the folder with the `docker-compose.yml` run `docker-compose up -d`
 * Your app is now reachable on port `1337` on the server
+
+## Docker Deployment
+
+```
+docker build -t socketio .
+docker run \
+  -p 80:80 \
+  -e REDIS_URL=redis://host:6379 \
+  socketio
+docker push <container registry> socketio:latest
+docker push <container registry> socketio:production
+
+```
 
 ## Known issues
 

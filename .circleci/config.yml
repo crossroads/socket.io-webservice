@@ -1,7 +1,9 @@
-version: 2
+version: 2.1
+
+orbs:
+  azure-acr: circleci/azure-acr@0.2.0
 
 aliases:
-
   - defaults: &defaults
       docker:
         - image: circleci/node:boron
@@ -19,7 +21,6 @@ aliases:
   - &yarn
     |
       yarn install --non-interactive --cache-folder ~/.cache/yarn --frozen-lockfile
-    
   - &restore-bundle-cache
       key: socket-goodcity-bundle-{{ checksum "Gemfile.lock" }}
   - &save-bundle-cache
@@ -58,16 +59,33 @@ jobs:
           ([ "$CIRCLE_BRANCH" == "live" ] && bundle exec cap production deploy) || ([ "$CIRCLE_BRANCH" == "master" ] && bundle exec cap staging deploy) || ([ "$CIRCLE_BRANCH" == "preview" ] && bundle exec cap preview deploy)
 
 workflows:
-    version: 2
     build-test-and-deploy:
       jobs:
         - checkout_code
         - package_dependencies:
             requires:
               - checkout_code
+        # OLD DEPLOYMENT
         - deployment:
             requires:
               - package_dependencies
             filters:
               branches:
-                only: /^(master|live|preview)$/
+                only: /^(master|live)$/
+        # NEW DEPLOYMENT
+        - azure-acr/build-and-push-image:
+            login-server-name: goodregistry.azurecr.io
+            registry-name: goodregistry
+            repo: socketio
+            tag: latest
+            filters:
+              branches:
+                only: /^(master)$/
+        - azure-acr/build-and-push-image:
+            login-server-name: goodregistry.azurecr.io
+            registry-name: goodregistry
+            repo: socketio
+            tag: production
+            filters:
+              branches:
+                only: /^(live)$/

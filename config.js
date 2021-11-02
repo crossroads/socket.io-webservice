@@ -21,7 +21,7 @@ if (!config.redis) { config.redis = {url: process.env.REDIS_URL}; }
 config.redis = extend({port:6379, host:"127.0.0.1"}, config.redis);
 
 // default to STDOUT
-config.winston = config.winston || {"console":{"colorize":true}};
+config.winston = config.winston || {"console":{"colorize":false}};
 
 // import single site from ENV, useful in docker env
 if (process.env.SITE_NAME) {

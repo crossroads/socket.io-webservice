@@ -286,8 +286,11 @@ docker run \
   -p 80:80 \
   -e REDIS_URL=redis://host:6379 \
   socketio
-docker push <container registry> socketio:latest
-docker push <container registry> socketio:production
+
+docker login <registry>.azurecr.io
+docker tag socketio <registry>.azurecr.io/socketio:latest
+docker push <registry>.azurecr.io/socketio:latest
+docker push <registry>.azurecr.io/socketio:production
 
 ```
 

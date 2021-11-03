@@ -1,4 +1,4 @@
-lock '3.11.0'
+lock '3.16.0'
 
 set :application, 'socket.io-webservice'
 set :repo_url, 'https://github.com/crossroads/socket.io-webservice.git'

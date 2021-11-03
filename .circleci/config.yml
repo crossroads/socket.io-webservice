@@ -1,5 +1,15 @@
 version: 2.1
 
+# ENV VARS required
+# - AZURE_SP
+# - AZURE_SP_PASSWORD
+# - AZURE_SP_TENANT
+# - AZURE_SUBSCRIPTION
+# - AZURE_ACR_REGISTRY
+
+orbs:
+  azure-cli: circleci/azure-cli@1.2.0
+
 aliases:
   - defaults: &defaults
       docker:
@@ -46,7 +56,7 @@ jobs:
   deployment:
     <<: *defaults
     docker:
-      - image: circleci/ruby:2.7.3-node
+      - image: cimg/ruby:2.7.3-node
     steps:
       - restore_cache: *restore-repo-cache
       - restore_cache: *restore-yarn-cache
@@ -55,16 +65,33 @@ jobs:
       - run: |
           ([ "$CIRCLE_BRANCH" == "live" ] && bundle exec cap production deploy) || ([ "$CIRCLE_BRANCH" == "master" ] && bundle exec cap staging deploy) || ([ "$CIRCLE_BRANCH" == "preview" ] && bundle exec cap preview deploy)
 
+  build-and-deploy-docker-image:
+    executor: azure-cli/default
+    steps:
+      - azure-cli/install
+      - azure-cli/login-with-service-principal
+      - az account set --subscription $AZURE_SUBSCRIPTION
+      - [ "$CIRCLE_BRANCH" == "live" ] && az acr build --registry $AZURE_ACR_REGISTRY -image socketio:production .
+      - [ "$CIRCLE_BRANCH" == "master" ] && az acr build --registry $AZURE_ACR_REGISTRY -image socketio:latest .
+
 workflows:
-    build-test-and-deploy:
+    build-and-deploy:
       jobs:
         - checkout_code
         - package_dependencies:
             requires:
               - checkout_code
+        # OLD DEPLOYMENT
         - deployment:
             requires:
               - package_dependencies
+            filters:
+              branches:
+                only: /^(master|live)$/
+        # NEW DEPLOYMENT
+        - build-and-push-docker-image:
+            requires:
+              - checkout_code
             filters:
               branches:
                 only: /^(master|live)$/

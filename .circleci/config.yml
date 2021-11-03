@@ -70,7 +70,7 @@ jobs:
     steps:
       - azure-cli/install
       - azure-cli/login-with-service-principal
-      - az account set --subscription $AZURE_SUBSCRIPTION
+      - run: az account set --subscription $AZURE_SUBSCRIPTION
       - run:
           name: Build docker image in ACR
           command: |

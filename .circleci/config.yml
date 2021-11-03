@@ -1,11 +1,11 @@
 version: 2.1
 
 # ENV VARS required
-# - AZURE_SP
-# - AZURE_SP_PASSWORD
-# - AZURE_SP_TENANT
-# - AZURE_SUBSCRIPTION
-# - AZURE_ACR_REGISTRY
+# AZURE_SP           - service principal given the Contributor role on the Azure Container Registry
+# AZURE_SP_PASSWORD  - service principal password
+# AZURE_SP_TENANT    - tenant of servie principal
+# AZURE_SUBSCRIPTION - name of Azure subscription with the container registry
+# AZURE_ACR_REGISTRY - name of Azure Container Registry
 
 orbs:
   azure-cli: circleci/azure-cli@1.2.0
@@ -67,11 +67,12 @@ jobs:
 
   build-and-deploy-docker-image:
     executor: azure-cli/default
+    working_directory: ~/code
     steps:
+      - restore_cache: *restore-repo-cache
       - azure-cli/install
       - azure-cli/login-with-service-principal
       - run: az account set --subscription $AZURE_SUBSCRIPTION
-      - restore_cache: *restore-repo-cache
       - run:
           name: Build docker image in ACR
           command: |

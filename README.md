@@ -288,10 +288,17 @@ docker run \
   socketio
 
 docker login <registry>.azurecr.io
-docker tag socketio <registry>.azurecr.io/socketio:latest
-docker push <registry>.azurecr.io/socketio:latest
-docker push <registry>.azurecr.io/socketio:production
+docker tag socketio <registry>.azurecr.io/socketio:master
+docker push <registry>.azurecr.io/socketio:master
+docker push <registry>.azurecr.io/socketio:live
+```
 
+## Azure Container Registry Builds
+
+```
+az login
+az account set --subscription "<name of subscription>"
+az acr build --registry <registry name> --image socketio:master .
 ```
 
 ## Known issues

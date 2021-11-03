@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  azure-acr: circleci/azure-acr@0.2.0
-
 aliases:
   - defaults: &defaults
       docker:
@@ -49,7 +46,7 @@ jobs:
   deployment:
     <<: *defaults
     docker:
-      - image: circleci/ruby:2.6.0-node
+      - image: circleci/ruby:2.7.3-node
     steps:
       - restore_cache: *restore-repo-cache
       - restore_cache: *restore-yarn-cache
@@ -65,27 +62,9 @@ workflows:
         - package_dependencies:
             requires:
               - checkout_code
-        # OLD DEPLOYMENT
         - deployment:
             requires:
               - package_dependencies
             filters:
               branches:
                 only: /^(master|live)$/
-        # NEW DEPLOYMENT
-        - azure-acr/build-and-push-image:
-            login-server-name: goodregistry.azurecr.io
-            registry-name: goodregistry
-            repo: socketio
-            tag: latest
-            filters:
-              branches:
-                only: /^(master)$/
-        - azure-acr/build-and-push-image:
-            login-server-name: goodregistry.azurecr.io
-            registry-name: goodregistry
-            repo: socketio
-            tag: production
-            filters:
-              branches:
-                only: /^(live)$/

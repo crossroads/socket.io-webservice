@@ -92,7 +92,7 @@ workflows:
               branches:
                 only: /^(master|live)$/
         # NEW DEPLOYMENT
-        - build-and-push-docker-image:
+        - build-and-deploy-docker-image:
             requires:
               - checkout_code
             filters:

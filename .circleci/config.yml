@@ -82,7 +82,7 @@ workflows:
         - package_dependencies:
             requires:
               - checkout_code
-        # OLD DEPLOYMENT
+        # OLD DEPLOYMENT (live only)
         - deployment:
             requires:
               - package_dependencies

@@ -71,6 +71,7 @@ jobs:
       - azure-cli/install
       - azure-cli/login-with-service-principal
       - run: az account set --subscription $AZURE_SUBSCRIPTION
+      - restore_cache: *restore-repo-cache
       - run:
           name: Build docker image in ACR
           command: |

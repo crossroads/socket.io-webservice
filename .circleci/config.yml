@@ -73,11 +73,7 @@ jobs:
       - azure-cli/install
       - azure-cli/login-with-service-principal
       - run: az account set --subscription $AZURE_SUBSCRIPTION
-      - run:
-          name: Build docker image in ACR
-          command: |
-            ([ "$CIRCLE_BRANCH" == "live" ] && az acr build --registry $AZURE_ACR_REGISTRY -image socketio:production .)
-            ([ "$CIRCLE_BRANCH" == "master" ] && az acr build --registry $AZURE_ACR_REGISTRY -image socketio:latest .)
+      - run: az acr build --registry $AZURE_ACR_REGISTRY --image socketio:$CIRCLE_BRANCH .
 
 workflows:
     build-and-deploy:

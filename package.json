@@ -35,7 +35,7 @@
     "winston": "^2.2.0"
   },
   "devDependencies": {
-    "async": "^2.0.0-rc.4",
+    "async": "^3.2.2",
     "node-inspector": "^0.12.8",
     "nodemon": "^1.9.2"
   }

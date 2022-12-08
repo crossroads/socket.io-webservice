@@ -63,7 +63,7 @@ jobs:
       - run: bundle check --path=vendor/bundle || bundle install --deployment --jobs=4 --retry=3
       - save_cache: *save-bundle-cache
       - run: |
-          ([ "$CIRCLE_BRANCH" == "live" ] && bundle exec cap production deploy) || ([ "$CIRCLE_BRANCH" == "master" ] && bundle exec cap staging deploy) || ([ "$CIRCLE_BRANCH" == "preview" ] && bundle exec cap preview deploy)
+          ([ "$CIRCLE_BRANCH" == "live" ] && bundle exec cap production deploy) || ([ "$CIRCLE_BRANCH" == "master" ] && bundle exec cap staging deploy)
 
   build-and-deploy-docker-image:
     executor: azure-cli/default
@@ -82,17 +82,15 @@ workflows:
         - package_dependencies:
             requires:
               - checkout_code
-        # OLD DEPLOYMENT (live only)
         - deployment:
             requires:
               - package_dependencies
             filters:
               branches:
                 only: /^(master|live)$/
-        # NEW DEPLOYMENT
-        - build-and-deploy-docker-image:
-            requires:
-              - checkout_code
-            filters:
-              branches:
-                only: /^(master|live)$/
+        # - build-and-deploy-docker-image:
+        #     requires:
+        #       - checkout_code
+        #     filters:
+        #       branches:
+        #         only: /^(master|live)$/

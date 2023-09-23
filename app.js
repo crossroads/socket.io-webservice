@@ -23,8 +23,6 @@ config.redis.return_buffers = true;
 var pub = redis.createClient(config.redis);
 var sub = redis.createClient(config.redis);
 
-console.log(pub)
-
 io.adapter(createAdapter(pub, sub)); 
 
 // start app

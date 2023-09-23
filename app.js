@@ -1,4 +1,3 @@
-require("newrelic");
 var express = require("express");
 var app = express();
 var server = require("http").createServer(app);
@@ -19,11 +18,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // configure socket.io redis
 var redis = require("redis");
-var redisAdapter = require("socket.io-redis");
+var { createAdapter  } = require("@socket.io/redis-adapter");
 config.redis.return_buffers = true;
 var pub = redis.createClient(config.redis);
 var sub = redis.createClient(config.redis);
-io.adapter(redisAdapter({pubClient: pub, subClient: sub}));
+
+console.log(pub)
+
+io.adapter(createAdapter(pub, sub)); 
 
 // start app
 var port = process.env.PORT || config.port || 1337;

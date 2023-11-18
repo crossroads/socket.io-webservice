@@ -27,7 +27,7 @@ var sub = redis.createClient(config.redis);
 io.adapter(createAdapter(pub, sub)); 
 
 var corsOptions = {
-  origin: ["https://goodcity.hk","http://localhost:4200","http://localhost:4201", "http://localhost:4202", "http://localhost:4203"],
+  origin: /(localhost:\d+|goodcity\.hk)$/,
   optionsSuccessStatus: 200
 }
 

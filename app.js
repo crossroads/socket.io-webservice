@@ -4,6 +4,7 @@ var server = require("http").createServer(app);
 var config = require("./config.js");
 var store = require("./store.js")(config.redis);
 var io = require("socket.io")(server, config.io);
+var cors = require("cors");
 
 // utilities
 var url = require("url");
@@ -24,6 +25,13 @@ var pub = redis.createClient(config.redis);
 var sub = redis.createClient(config.redis);
 
 io.adapter(createAdapter(pub, sub)); 
+
+var corsOptions = {
+  origin: ["https://goodcity.hk","http://localhost:4200","http://localhost:4201", "http://localhost:4202", "http://localhost:4203"],
+  optionsSuccessStatus: 200
+}
+
+app.use(cors(corsOptions))
 
 // start app
 var port = process.env.PORT || config.port || 1337;

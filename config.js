@@ -15,6 +15,14 @@ if (fs.existsSync("./sites.yml")) {
 
 config.env = env;
 
+config.cors = {
+  origin: /(localhost:\d+|goodcity\.hk)$/,
+  optionsSuccessStatus: 200
+}
+
+config.io = config.io || {}
+config.io.cors = config.cors;
+
 // environment defaults suitable for docker
 if (!config.device_ttl) { config.device_ttl = process.env.DEVICE_TTL || 3600; }
 if (!config.redis) { config.redis = {url: process.env.REDIS_URL}; }

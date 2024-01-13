@@ -26,12 +26,7 @@ var sub = redis.createClient(config.redis);
 
 io.adapter(createAdapter(pub, sub)); 
 
-var corsOptions = {
-  origin: /(localhost:\d+|goodcity\.hk)$/,
-  optionsSuccessStatus: 200
-}
-
-app.use(cors(corsOptions))
+app.use(cors(config.cors))
 
 // start app
 var port = process.env.PORT || config.port || 1337;

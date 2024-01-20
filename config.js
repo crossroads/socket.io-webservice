@@ -7,10 +7,10 @@ var config = {};
 var sites = {};
 
 if (fs.existsSync("./config.yml")) {
-  config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[env];
+  config = yaml.load(fs.readFileSync("./config.yml", "utf8"))[env];
 }
 if (fs.existsSync("./sites.yml")) {
-  config.sites = yaml.safeLoad(fs.readFileSync("./sites.yml", "utf8"));
+  config.sites = yaml.load(fs.readFileSync("./sites.yml", "utf8"));
 }
 
 config.env = env;

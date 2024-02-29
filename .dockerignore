@@ -19,6 +19,5 @@ Gemfile
 Gemfile.lock
 goodcity.md
 README.md
-newrelic_agent.log
 sites-sample.yml
 sites.yml

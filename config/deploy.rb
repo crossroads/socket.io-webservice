@@ -3,7 +3,7 @@ lock '3.16.0'
 set :application, 'socket.io-webservice'
 set :repo_url, 'https://github.com/crossroads/socket.io-webservice.git'
 set :deploy_to, '/opt/node/socket.io-webservice'
-set :linked_files, fetch(:linked_files, []).push('sites.yml', 'config.yml', 'newrelic.js')
+set :linked_files, fetch(:linked_files, []).push('sites.yml', 'config.yml')
 set :linked_dirs, fetch(:linked_dirs, []).push('logs', 'node_modules')
 
 namespace :npm do

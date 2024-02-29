@@ -13,7 +13,7 @@ orbs:
 aliases:
   - defaults: &defaults
       docker:
-        - image: cimg/node:18.18
+        - image: circleci/node:18.18
       working_directory: ~/code
   - &restore-repo-cache
       key: socket-goodcity-repo-{{ .Environment.CIRCLE_SHA1 }}

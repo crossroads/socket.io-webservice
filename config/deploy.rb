@@ -11,6 +11,7 @@ namespace :npm do
   task :install do
     on roles(:web) do
       within release_path do
+        execute :nvm, 'use'
         execute :npm, 'install', '--production'
       end
     end

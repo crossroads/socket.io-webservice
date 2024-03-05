@@ -1,6 +1,5 @@
 node_modules
 sites.yml
 config.yml
-newrelic_agent.log
 logs/*
 log/*

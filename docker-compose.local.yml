@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  app:
+    image: node:boron-alpine
+    restart: unless-stopped
+    user: 1000:1000
+    working_dir: /app
+    command: npm run dev
+    networks:
+      - socket-io-webservice
+    volumes:
+      - ${PWD}/:/app
+    ports:
+      - '1337:1337'
+    environment:
+      PORT: 1337
+
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    command: --requirepass mypassword
+    networks:
+      - socket-io-webservice
+    volumes:
+      - redis-data:/data
+
+networks:
+  socket-io-webservice:
+
+volumes:
+  redis-data:

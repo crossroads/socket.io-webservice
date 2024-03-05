@@ -1,10 +1,19 @@
-version: 2
+version: 2.1
+
+# ENV VARS required
+# AZURE_SP           - service principal given the Contributor role on the Azure Container Registry
+# AZURE_SP_PASSWORD  - service principal password
+# AZURE_SP_TENANT    - tenant of servie principal
+# AZURE_SUBSCRIPTION - name of Azure subscription with the container registry
+# AZURE_ACR_REGISTRY - name of Azure Container Registry
+
+orbs:
+  azure-cli: circleci/azure-cli@1.2.0
 
 aliases:
-
   - defaults: &defaults
       docker:
-        - image: circleci/node:boron
+        - image: cimg/node:18.18
       working_directory: ~/code
   - &restore-repo-cache
       key: socket-goodcity-repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -19,7 +28,6 @@ aliases:
   - &yarn
     |
       yarn install --non-interactive --cache-folder ~/.cache/yarn --frozen-lockfile
-    
   - &restore-bundle-cache
       key: socket-goodcity-bundle-{{ checksum "Gemfile.lock" }}
   - &save-bundle-cache
@@ -40,26 +48,35 @@ jobs:
   package_dependencies:
     <<: *defaults
     steps:
-      - restore-cache: *restore-repo-cache
-      - restore-cache: *restore-yarn-cache
+      - restore_cache: *restore-repo-cache
+      - restore_cache: *restore-yarn-cache
       - run: *yarn
-      - save-cache: *save-yarn-cache
+      - save_cache: *save-yarn-cache
       
   deployment:
     <<: *defaults
     docker:
-      - image: circleci/ruby:2.6.0-node
+      - image: cimg/ruby:2.7.3-node
     steps:
-      - restore-cache: *restore-repo-cache
-      - restore-cache: *restore-yarn-cache
+      - restore_cache: *restore-repo-cache
+      - restore_cache: *restore-yarn-cache
       - run: bundle check --path=vendor/bundle || bundle install --deployment --jobs=4 --retry=3
-      - save-cache: *save-bundle-cache
+      - save_cache: *save-bundle-cache
       - run: |
-          ([ "$CIRCLE_BRANCH" == "live" ] && bundle exec cap production deploy) || ([ "$CIRCLE_BRANCH" == "master" ] && bundle exec cap staging deploy) || ([ "$CIRCLE_BRANCH" == "preview" ] && bundle exec cap preview deploy)
+          ([ "$CIRCLE_BRANCH" == "live" ] && bundle exec cap production deploy) || ([ "$CIRCLE_BRANCH" == "master" ] && bundle exec cap staging deploy)
+
+  build-and-deploy-docker-image:
+    executor: azure-cli/default
+    working_directory: ~/code
+    steps:
+      - restore_cache: *restore-repo-cache
+      - azure-cli/install
+      - azure-cli/login-with-service-principal
+      - run: az account set --subscription $AZURE_SUBSCRIPTION
+      - run: az acr build --registry $AZURE_ACR_REGISTRY --image socketio:$CIRCLE_BRANCH .
 
 workflows:
-    version: 2
-    build-test-and-deploy:
+    build-and-deploy:
       jobs:
         - checkout_code
         - package_dependencies:
@@ -70,4 +87,10 @@ workflows:
               - package_dependencies
             filters:
               branches:
-                only: /^(master|live|preview)$/
+                only: /^(master|live)$/
+        # - build-and-deploy-docker-image:
+        #     requires:
+        #       - checkout_code
+        #     filters:
+        #       branches:
+        #         only: /^(master|live)$/

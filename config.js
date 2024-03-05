@@ -3,12 +3,35 @@ var fs = require("fs");
 var yaml = require("js-yaml");
 var extend = require("util")._extend;
 var env = process.env.NODE_ENV || "production";
-var config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[env];
-config.sites = yaml.safeLoad(fs.readFileSync("./sites.yml", "utf8"));
+var config = {};
+var sites = {};
+
+if (fs.existsSync("./config.yml")) {
+  config = yaml.safeLoad(fs.readFileSync("./config.yml", "utf8"))[env];
+}
+if (fs.existsSync("./sites.yml")) {
+  config.sites = yaml.safeLoad(fs.readFileSync("./sites.yml", "utf8"));
+}
+
 config.env = env;
 
-if (!config.device_ttl) { config.device_ttl = 3600; }
+// environment defaults suitable for docker
+if (!config.device_ttl) { config.device_ttl = process.env.DEVICE_TTL || 3600; }
+if (!config.redis) { config.redis = {url: process.env.REDIS_URL}; }
 config.redis = extend({port:6379, host:"127.0.0.1"}, config.redis);
-config.winston = config.winston || {"console":{"colorize":true}};
+
+// import single site from ENV, useful in docker env
+if (process.env.SITE_NAME) {
+  sites = {};
+  sites[process.env.SITE_NAME] = {
+    authUrl: process.env.AUTH_URL,
+    authScheme: process.env.AUTH_SCHEME,
+    apiKey: process.env.API_KEY,
+    userRoomPrefix: process.env.USER_ROOM_PREFIX,
+    updateUserUrl: process.env.UPDATE_USER_URL,
+    publicChannel: process.env.PUBLIC_CHANNEL
+  };
+  config.sites = sites;
+}
 
 module.exports = config;

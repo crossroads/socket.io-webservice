@@ -99,7 +99,7 @@ var socket = io("http://domain.com/<namespace>?token=12345&deviceId=090909");
 * token - is the token that will form the authorization header with authScheme in sites.yml that will be sent with the request to retrieve rooms from authUrl defined in sites.yml (see add new site)
 * deviceId - this is intended for support of a single user having multiple devices (e.g. could be a user with two browser tabs open if not updating a shared data storage)
 
-### Special events
+## Special events
 
 ```js
 // client app
@@ -121,7 +121,25 @@ socket.on("_resync", function() {
 
 ## Config
 
-Configuration details are stored in `config.yml` and before the app starts `NODE_ENV` can be set to either `development` or `production`. If no environment is specified it defaults to production.
+You can configure an app suitable for docker using just environment variables. For example:
+
+```
+NODE_ENV=production
+REDIS_URL=rediss://:<password>@<host>:<port>/<database>
+DEVICE_TTL=3600
+PORT=80
+SITE_NAME=goodcity
+AUTH_URL=https://<path to api>/api/v1/auth/current_user_rooms
+AUTH_SCHEME=Bearer
+API_KEY=<insert api key>
+USER_ROOM_PREFIX=user_
+UPDATE_USER_URL=https://<path to api>/api/v1/users/:id
+PUBLIC_CHANNEL=browse
+```
+
+The above will default to STDOUT logging.
+
+Configuration details can also be stored in `config.yml` if you want more sites or more finegrained control over logging. Note: if no environment is specified it defaults to production.
 
 ```yml
 production:
@@ -134,13 +152,6 @@ production:
     worker: 0
   io:
     pingTimeout: 60000
-  winston:
-    file:
-      level: info
-      filename: ./logs/log.txt
-      handleExceptions: true
-    console:
-      level: info
   servers:
     - deployer@server1.example.com
     - deployer@server2.example.com
@@ -156,8 +167,8 @@ production:
   * a full list of options can be found here https://github.com/Automattic/socket.io#serveroptsobject
 * winston - a logging library; can use a list of the built-in transports (default is console), options can be found here https://github.com/winstonjs/winston#working-with-transports
 
-### Add new site
-To add new sites modify `sites.yml` as follows:
+## Add new site
+A single site can be configured using ENV variables however, you can also specify a `sites.yml` as follows:
 
 ```yml
 newsite:
@@ -168,25 +179,23 @@ newsite:
   updateUserUrl: http://newsite.com/users/:id
 ```
 
-* name - is the namespace for socketio, the client connects as `io("/newsite")`
+* newsite - is the namespace for socketio, the client connects as `io("/newsite")`
 * authUrl - this is the url the socketio webservice will use to retrieve the rooms the authenticated user belongs to, the client is required to provide the token `io("/newsite?token=12345")` on connection and will form part of the Authorization header that will be used when the request is made to authUrl
 * authScheme - is used as part of the Authorization header that will be sent to the authUrl
 * apiKey - used to authenticate requests when sending messages to clients via this webservice
 * userRoomPrefix - the prefix rooms belonging to a single user starts with, used for determining whether to enable handling connection reliability functionality, if specified then every user must belong to a private room
 * updateUserUrl - this is the url the socketio webservice will use to update about the user's last connected and disconnected time. It will be PUT request with parameters example: {"id"=>"8", "user"=>{"last_connected"=>"2015-05-06T07:49:29.196Z"}}
 
-## Development
+Use sites.yml if you have more than one site to configure.
 
-### Installation
+## Manual Installation
 
 * Install redis - `sudo apt-get install redis-server redis-tools`
 * Install nodejs - https://github.com/creationix/nvm
 * `git clone` this repository
-* `npm install`
+* `yarn install`
 
-### Installation on Server
-
-As deployer user:
+Install `nvm` and Node v6:
 
 ```shell
 curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
@@ -199,21 +208,42 @@ Add the following line to Passenger conf
 passenger_nodejs /home/deployer/.nvm/versions/node/v6.14.3/bin/node;
 ```
 
-### Running
+Run the app normally (starts server at http://localhost:1337):
 
-* `npm start`
-* Visit your app at http://localhost:1337.
+`yarn start`
 
-### Debugging
+Run the app in `dev` mode with `nodemon`:
 
-* `npm run debug`
+`yarn dev`
+
+Run the app in `debug` mode with `node-debug`:
+
+`yarn debug`
+
 * Add a break point at start of app and hit continue in the debugger
 * Visit your app at e.g. http://localhost:1337 in a different tab
 * Now you can add a break point where you want to debug
 
-## Production
 
-### Installing nginx / passenger
+## Docker setup
+
+* `git clone` this repository
+* `yarn install`
+
+Run the app in `dev` mode with `nodemon`:
+
+* `docker-compose --file docker-compose.local.yml up -d`
+* Visit your app at http://localhost:1337.
+
+Run the app in `debug` mode with `node-debug`:
+
+* Change the start command of `app` in  `docker-compose.local.yml` to `npm run debug`
+* Add a break point at start of app and hit continue in the debugger
+* `docker-compose --file docker-compose.local.yml up -d`
+* Visit your app at e.g. http://localhost:1337 in a different tab
+* Now you can add a break point where you want to debug
+
+## Installing nginx / passenger
 
 Assumes you've installed rvm already
 
@@ -223,7 +253,7 @@ gem install passenger
 rvmsudo passenger-install-nginx-module --languages nodejs --auto
 ```
 
-### Capistrano Deployment
+## Capistrano Deployment
 
 Check in your code and push it upstream as Capistrano will checkout code from your git repo rather than uploading your local files.
 
@@ -232,6 +262,37 @@ Check in your code and push it upstream as Capistrano will checkout code from yo
     cap production deploy:rollback
 
 The deploy script automatically handles `npm install` on the remote machine and ensures shared files are symlinked to the current folder.
+
+## Docker Compose
+
+* `git clone` this repository and `cd` into the repository folder
+* Run `docker-compose build` to build the container image from source
+* Now you can move the `docker-compose.yml` to another folder together with a `config.yml` and `sites.yml`
+* In the folder with the `docker-compose.yml` run `docker-compose up -d`
+* Your app is now reachable on port `1337` on the server
+
+## Docker Deployment
+
+```
+docker build -t socketio .
+docker run \
+  -p 80:80 \
+  -e REDIS_URL=redis://host:6379 \
+  socketio
+
+docker login <registry>.azurecr.io
+docker tag socketio <registry>.azurecr.io/socketio:master
+docker push <registry>.azurecr.io/socketio:master
+docker push <registry>.azurecr.io/socketio:live
+```
+
+## Azure Container Registry Builds
+
+```
+az login
+az account set --subscription "<name of subscription>"
+az acr build --registry <registry name> --image socketio:master .
+```
 
 ## Known issues
 

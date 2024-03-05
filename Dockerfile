@@ -1,17 +1,13 @@
-FROM node:boron-alpine
+# docker build -t sio:latest .
+# docker run -i -t sio:latest /bin/bash
 
-RUN \
-  apk update && \
-  apk upgrade && \
-  mkdir /app && \
-  chown 1000:1000 /app
+FROM node:16-bookworm-slim
 
-USER 1000:1000
+RUN apt-get -y update && \
+  mkdir -p /app
 
 COPY . /app
-
 WORKDIR /app
-
 RUN yarn install
-
+EXPOSE 80
 ENTRYPOINT yarn start

@@ -152,13 +152,6 @@ production:
     worker: 0
   io:
     pingTimeout: 60000
-  winston:
-    file:
-      level: info
-      filename: ./logs/log.txt
-      handleExceptions: true
-    console:
-      level: info
   servers:
     - deployer@server1.example.com
     - deployer@server2.example.com

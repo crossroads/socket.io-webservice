@@ -56,8 +56,6 @@ jobs:
   deployment:
     <<: *defaults
     docker:
-      # Note: CircleCI's `-node` variant installs the latest Node LTS at build time.
-      # Today that's Node 22, but this may change in the future. We assert major=22 below.
       - image: cimg/ruby:2.7.8-node
     steps:
       - restore_cache: *restore-repo-cache

@@ -1,7 +1,7 @@
 # docker build -t sio:latest .
 # docker run -i -t sio:latest /bin/bash
 
-FROM node:16-bookworm-slim
+FROM node:22-bookworm-slim
 
 RUN apt-get -y update && \
   mkdir -p /app

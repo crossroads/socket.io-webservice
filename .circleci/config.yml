@@ -13,7 +13,7 @@ orbs:
 aliases:
   - defaults: &defaults
       docker:
-        - image: cimg/node:18.18
+        - image: cimg/node:22.17
       working_directory: ~/code
   - &restore-repo-cache
       key: socket-goodcity-repo-{{ .Environment.CIRCLE_SHA1 }}
@@ -56,7 +56,9 @@ jobs:
   deployment:
     <<: *defaults
     docker:
-      - image: cimg/ruby:2.7.3-node
+      # Note: CircleCI's `-node` variant installs the latest Node LTS at build time.
+      # Today that's Node 22, but this may change in the future. We assert major=22 below.
+      - image: cimg/ruby:2.7.8-node
     steps:
       - restore_cache: *restore-repo-cache
       - restore_cache: *restore-yarn-cache

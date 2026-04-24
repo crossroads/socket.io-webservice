@@ -3,7 +3,7 @@
 [![Code Climate](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/gpa.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
 [![Issue Count](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/issue_count.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
 
-This project currently runs on NodeJS v6 LTS (boron).
+This project currently runs on NodeJS v16 LTS (boron).
 
 The SocketIO Web Service allows multiple sites, differentiated via socket.io namespace, to send push messages to connected clients using socket.io.
 
@@ -195,17 +195,17 @@ Use sites.yml if you have more than one site to configure.
 * `git clone` this repository
 * `yarn install`
 
-Install `nvm` and Node v6:
+Install `nvm` and Node v16:
 
 ```shell
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-nvm install lts/boron    # v6
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+nvm install lts/gallium    # v16
 ```
 
 Add the following line to Passenger conf
 
 ```
-passenger_nodejs /home/deployer/.nvm/versions/node/v6.14.3/bin/node;
+passenger_nodejs /home/deployer/.nvm/versions/node/v16.20.2/bin/node;
 ```
 
 Run the app normally (starts server at http://localhost:1337):

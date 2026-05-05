@@ -1,9 +1,6 @@
 # SocketIO Web Service
 
-[![Code Climate](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/gpa.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
-[![Issue Count](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/issue_count.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
-
-This project currently runs on NodeJS v16 LTS (boron).
+This project currently runs on NodeJS v22 LTS (jod).
 
 The SocketIO Web Service allows multiple sites, differentiated via socket.io namespace, to send push messages to connected clients using socket.io.
 
@@ -195,17 +192,17 @@ Use sites.yml if you have more than one site to configure.
 * `git clone` this repository
 * `yarn install`
 
-Install `nvm` and Node v16:
+Install `nvm` and Node v22:
 
 ```shell
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-nvm install lts/gallium    # v16
+nvm install lts/jod    # v22
 ```
 
 Add the following line to Passenger conf
 
 ```
-passenger_nodejs /home/deployer/.nvm/versions/node/v16.20.2/bin/node;
+passenger_nodejs /home/deployer/.nvm/versions/node/v22.22.2/bin/node;
 ```
 
 Run the app normally (starts server at http://localhost:1337):

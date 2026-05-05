@@ -1,7 +1,6 @@
 // load site and configuration data
 var fs = require("fs");
 var yaml = require("js-yaml");
-var extend = require("util")._extend;
 var env = process.env.NODE_ENV || "production";
 var config = {};
 var sites = {};
@@ -18,7 +17,7 @@ config.env = env;
 // environment defaults suitable for docker
 if (!config.device_ttl) { config.device_ttl = process.env.DEVICE_TTL || 3600; }
 if (!config.redis) { config.redis = {url: process.env.REDIS_URL}; }
-config.redis = extend({port:6379, host:"127.0.0.1"}, config.redis);
+config.redis = Object.assign({port:6379, host:"127.0.0.1"}, config.redis);
 
 // import single site from ENV, useful in docker env
 if (process.env.SITE_NAME) {

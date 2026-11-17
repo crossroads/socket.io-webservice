@@ -232,6 +232,10 @@ for (var siteName in config.sites) {
         nsp.users[room].devices.push(device);
       }
       device.socketId = socket.id;
+      // A device that reconnects with the same id reuses this object, so mark it connected again. Without this its
+      // stale `connected: false` and old `disconnectTime` make the /send loop drop it device_ttl after that old
+      // disconnect, while it is still connected (GoodCity LEGACY-ISSUES API-64).
+      device.connected = true;
 
       store.get(nsp.name, device.storeListName, function(batchArgs) {
         logger.info({"message":"Batch event", "site":nsp.name, "socketId":socket.id, "deviceId":deviceId});
@@ -249,9 +253,13 @@ for (var siteName in config.sites) {
 
         socket.on("disconnect", function() {
           logger.info({"message":"Socket disconnected", "site":nsp.name, "socketId":socket.id, "deviceId":deviceId});
-          device.connected = false;
-          device.disconnectTime = Date.now();
-          store.expire(nsp.name, device.storeListName, config.device_ttl);
+          // Only the device's current socket may mark it disconnected: an old socket's late disconnect after a
+          // reconnect must not knock the live one offline.
+          if (device.socketId === socket.id) {
+            device.connected = false;
+            device.disconnectTime = Date.now();
+            store.expire(nsp.name, device.storeListName, config.device_ttl);
+          }
 
           if(site.updateUserUrl && !nsp.isPublicRoom(room)) {
             nsp.userStateChange(room, false, socket)

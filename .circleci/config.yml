@@ -70,6 +70,7 @@ jobs:
     working_directory: ~/code
     steps:
       - restore_cache: *restore-repo-cache
+      - sudo apt update
       - azure-cli/install
       - azure-cli/login-with-service-principal
       - run: az account set --subscription $AZURE_SUBSCRIPTION

@@ -8,7 +8,7 @@ version: 2.1
 # AZURE_ACR_REGISTRY - name of Azure Container Registry
 
 orbs:
-  azure-cli: circleci/azure-cli@1.2.0
+  azure-cli: circleci/azure-cli@1.3.2
 
 aliases:
   - defaults: &defaults
@@ -70,7 +70,6 @@ jobs:
     working_directory: ~/code
     steps:
       - restore_cache: *restore-repo-cache
-      - run: sudo apt update
       - azure-cli/install
       - azure-cli/login-with-service-principal
       - run: az account set --subscription $AZURE_SUBSCRIPTION

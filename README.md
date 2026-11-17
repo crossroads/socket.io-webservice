@@ -250,7 +250,7 @@ gem install passenger
 rvmsudo passenger-install-nginx-module --languages nodejs --auto
 ```
 
-## Capistrano Deployment
+## Capistrano Deployment (no longer used, use docker instead)
 
 Check in your code and push it upstream as Capistrano will checkout code from your git repo rather than uploading your local files.
 
@@ -268,26 +268,12 @@ The deploy script automatically handles `npm install` on the remote machine and 
 * In the folder with the `docker-compose.yml` run `docker-compose up -d`
 * Your app is now reachable on port `1337` on the server
 
-## Docker Deployment
+## Docker Builds & Deployment
 
 ```
-docker build -t socketio .
-docker run \
-  -p 80:80 \
-  -e REDIS_URL=redis://host:6379 \
-  socketio
-
-docker login <registry>.azurecr.io
-docker tag socketio <registry>.azurecr.io/socketio:master
-docker push <registry>.azurecr.io/socketio:master
-docker push <registry>.azurecr.io/socketio:live
-```
-
-## Azure Container Registry Builds
-
-```
+docker build --pull -t socketio:master .
+docker run -it --rm --init --name socketio --env-file socketio.env.dev -p 127.0.0.1:1337:1337 socketio:master
 az login
-az account set --subscription "<name of subscription>"
 az acr build --registry <registry name> --image socketio:master .
 ```
 

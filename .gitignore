@@ -3,3 +3,5 @@ sites.yml
 config.yml
 logs/*
 log/*
+socketio.env
+socketio.env.dev

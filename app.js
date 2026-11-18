@@ -7,7 +7,6 @@ var io = require("socket.io")(server, config.io);
 
 // utilities
 var url = require("url");
-var httpClient = require("request");
 var logger = require("./logger.js");
 var genId = require("./genId.js");
 
@@ -156,14 +155,23 @@ for (var siteName in config.sites) {
     var userUpdateUrl = site.updateUserUrl.replace(":id", roomId);
     var query = url.parse(socket.request.url, true).query;
     var headers = {"Authorization": site.authScheme + " " + query.token};
-    httpClient.put(userUpdateUrl, {headers:headers, json:userParams}, function(error, res, body) {
-      if (error || (res.statusCode && res.statusCode !== 200)) {
-        logger.error({"message":"User update error", "site":nsp.name, "reason":error || body, "status code":res.statusCode, "socketId":socket.id, "deviceId":socket.deviceId, "userRoom":userRoom});
+    (async function() {
+      try {
+        var resp = await fetch(userUpdateUrl, {
+          method: "PUT",
+          headers: Object.assign({"content-type": "application/json"}, headers),
+          body: JSON.stringify(userParams)
+        });
+        if (resp.status !== 200) {
+          var body = await resp.text();
+          logger.error({"message":"User update error", "site":nsp.name, "reason":body, "status code":resp.status, "socketId":socket.id, "deviceId":socket.deviceId, "userRoom":userRoom});
+        } else {
+          logger.info({"message":"User updated", "socketId":socket.id, "deviceId":socket.deviceId, "userRoom":userRoom});
+        }
+      } catch (error) {
+        logger.error({"message":"User update error", "site":nsp.name, "reason":error, "socketId":socket.id, "deviceId":socket.deviceId, "userRoom":userRoom});
       }
-      else {
-        logger.info({"message":"User updated", "socketId":socket.id, "deviceId":socket.deviceId, "userRoom":userRoom});
-      }
-    })
+    })();
   }
   // END
 
@@ -172,34 +180,38 @@ for (var siteName in config.sites) {
     nsp = socket.nsp; // for some reason without this, nsp referred to the last site's nsp
     var query = url.parse(socket.request.url, true).query;
     var headers = {"Authorization": site.authScheme + " " + query.token, "X-META": query.meta};
-    httpClient.get(site.authUrl, {headers:headers, json:true}, function(error, res, data) {
-      if (error) {
+    (async function() {
+      try {
+        var resp = await fetch(site.authUrl, { method: "GET", headers: headers });
+        var statusCode = resp.status;
+        var data = await resp.json();
+
+        if (statusCode === 401) {
+          logger.error({"message":"Authentication error", "site":nsp.name, "reason":"Client auth failed"});
+          return next(new Error("Authentication failed"));
+        } else if (statusCode !== 200) {
+          logger.error({"message":"Authentication error", "site":nsp.name, "reason":"Auth " + statusCode + " error"});
+          return next(new Error("Auth " + statusCode + " error"));
+        } else if (site.userRoomEnabled && !data.some(function(r) { return nsp.isUserRoom(r); })) {
+          logger.error({"message":"Authentication error", "site":nsp.name, "reason":"User is missing a private room"});
+          return next(new Error("User is missing a private room"));
+        }
+
+        logger.info({"message":"Rooms registered", "socketId":socket.id, "rooms":data});
+        Object.keys(socket.rooms).forEach(function(room) { socket.leave(room); });
+
+        if (!data.length) {
+          return next();
+        }
+
+        // proceed once last room has completed joining
+        data.slice(0,-1).forEach(function(room) { socket.join(room); });
+        socket.join(data.slice(-1), next);
+      } catch (error) {
         logger.error({"message":"Authentication error", "site":nsp.name, "reason":"Client auth error: " + error});
         return next(new Error("Auth error: " + error));
-      } else if (res.statusCode && res.statusCode === 401) {
-        logger.error({"message":"Authentication error", "site":nsp.name, "reason":"Client auth failed"});
-        return next(new Error("Authentication failed"));
-      } else if (res.statusCode && res.statusCode !== 200) {
-        logger.error({"message":"Authentication error", "site":nsp.name, "reason":"Auth " + res.statusCode + " error"});
-        return next(new Error("Auth " + res.statusCode + " error"));
-      } else if (site.userRoomEnabled && !data.some(function(r) { return nsp.isUserRoom(r); })) {
-        logger.error({"message":"Authentication error", "site":nsp.name, "reason":"User is missing a private room"});
-        return next(new Error("User is missing a private room"));
-      } else if (!res.statusCode) {
-        logger.error({"message":"Error status code not set"})
-        return next(new Error("Error status code not set"));
       }
-      logger.info({"message":"Rooms registered", "socketId":socket.id, "rooms":data});
-      Object.keys(socket.rooms).forEach(function(room) { socket.leave(room); });
-
-      if (!data.length) {
-        return next();
-      }
-
-      // proceed once last room has completed joining
-      data.slice(0,-1).forEach(function(room) { socket.join(room); });
-      socket.join(data.slice(-1), next);
-    });
+    })();
   });
 
   // send missed messages
@@ -220,6 +232,10 @@ for (var siteName in config.sites) {
         nsp.users[room].devices.push(device);
       }
       device.socketId = socket.id;
+      // A device that reconnects with the same id reuses this object, so mark it connected again. Without this its
+      // stale `connected: false` and old `disconnectTime` make the /send loop drop it device_ttl after that old
+      // disconnect, while it is still connected (GoodCity LEGACY-ISSUES API-64).
+      device.connected = true;
 
       store.get(nsp.name, device.storeListName, function(batchArgs) {
         logger.info({"message":"Batch event", "site":nsp.name, "socketId":socket.id, "deviceId":deviceId});
@@ -237,9 +253,13 @@ for (var siteName in config.sites) {
 
         socket.on("disconnect", function() {
           logger.info({"message":"Socket disconnected", "site":nsp.name, "socketId":socket.id, "deviceId":deviceId});
-          device.connected = false;
-          device.disconnectTime = Date.now();
-          store.expire(nsp.name, device.storeListName, config.device_ttl);
+          // Only the device's current socket may mark it disconnected: an old socket's late disconnect after a
+          // reconnect must not knock the live one offline.
+          if (device.socketId === socket.id) {
+            device.connected = false;
+            device.disconnectTime = Date.now();
+            store.expire(nsp.name, device.storeListName, config.device_ttl);
+          }
 
           if(site.updateUserUrl && !nsp.isPublicRoom(room)) {
             nsp.userStateChange(room, false, socket)

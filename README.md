@@ -1,9 +1,6 @@
 # SocketIO Web Service
 
-[![Code Climate](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/gpa.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
-[![Issue Count](https://codeclimate.com/github/crossroads/socket.io-webservice/badges/issue_count.svg)](https://codeclimate.com/github/crossroads/socket.io-webservice)
-
-This project currently runs on NodeJS v6 LTS (boron).
+This project currently runs on NodeJS v22 LTS (jod).
 
 The SocketIO Web Service allows multiple sites, differentiated via socket.io namespace, to send push messages to connected clients using socket.io.
 
@@ -195,17 +192,17 @@ Use sites.yml if you have more than one site to configure.
 * `git clone` this repository
 * `yarn install`
 
-Install `nvm` and Node v6:
+Install `nvm` and Node v22:
 
 ```shell
-curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash
-nvm install lts/boron    # v6
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+nvm install lts/jod    # v22
 ```
 
 Add the following line to Passenger conf
 
 ```
-passenger_nodejs /home/deployer/.nvm/versions/node/v6.14.3/bin/node;
+passenger_nodejs /home/deployer/.nvm/versions/node/v22.22.2/bin/node;
 ```
 
 Run the app normally (starts server at http://localhost:1337):
@@ -253,7 +250,7 @@ gem install passenger
 rvmsudo passenger-install-nginx-module --languages nodejs --auto
 ```
 
-## Capistrano Deployment
+## Capistrano Deployment (no longer used, use docker instead)
 
 Check in your code and push it upstream as Capistrano will checkout code from your git repo rather than uploading your local files.
 
@@ -271,26 +268,12 @@ The deploy script automatically handles `npm install` on the remote machine and 
 * In the folder with the `docker-compose.yml` run `docker-compose up -d`
 * Your app is now reachable on port `1337` on the server
 
-## Docker Deployment
+## Docker Builds & Deployment
 
 ```
-docker build -t socketio .
-docker run \
-  -p 80:80 \
-  -e REDIS_URL=redis://host:6379 \
-  socketio
-
-docker login <registry>.azurecr.io
-docker tag socketio <registry>.azurecr.io/socketio:master
-docker push <registry>.azurecr.io/socketio:master
-docker push <registry>.azurecr.io/socketio:live
-```
-
-## Azure Container Registry Builds
-
-```
+docker build --pull -t socketio:master .
+docker run -it --rm --init --name socketio --env-file socketio.env.dev -p 127.0.0.1:1337:1337 socketio:master
 az login
-az account set --subscription "<name of subscription>"
 az acr build --registry <registry name> --image socketio:master .
 ```
 

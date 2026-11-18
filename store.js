@@ -1,11 +1,10 @@
 var redis = require("redis");
-var extend = require("util")._extend;
 var genId = require("./genId.js");
 var ReadWriteLock = require("rwlock");
 
 module.exports = function(redisConfig) {
 
-  var redisConfig = extend({}, redisConfig, {return_buffers:false});
+  redisConfig = Object.assign({}, redisConfig, {return_buffers:false});
   var redisClient = redis.createClient(redisConfig);
   var lock = new ReadWriteLock();
 
